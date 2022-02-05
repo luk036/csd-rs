@@ -21,8 +21,8 @@
 
 #[cfg(test)]
 mod tests {
-    use super::crate::lib::{to_csd, to_decimal, to_csdfixed};
-    
+    use super::crate::lib::{to_csd, to_csdfixed, to_decimal};
+
     #[test]
     fn test_to_csd() {
         assert_eq!(String::from("+00-00.+0"), to_csd(28.5, 2));
@@ -41,4 +41,3 @@ mod tests {
         assert_eq!(String::from("0.-"), to_csdfixed(-0.5, 4));
     }
 }
-

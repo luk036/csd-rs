@@ -14,7 +14,7 @@
  License: GPL2
 */
 mod lib;
-use crate::lib::{to_csd, to_decimal, to_csdfixed};
+use crate::lib::{to_csd, to_csdfixed, to_decimal};
 
 fn main() {
     println!("CHECK: +00-00.+0 == {}", to_csd(28.5, 2));
