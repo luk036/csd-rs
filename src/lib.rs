@@ -122,3 +122,26 @@ pub fn to_csdfixed(mut num: f64, mut nnz: u32) -> String {
     }
     csd_str
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{to_csd, to_csdfixed, to_decimal};
+
+    #[test]
+    fn test_to_csd() {
+        assert_eq!(String::from("+00-00.+0"), to_csd(28.5, 2));
+        assert_eq!(String::from("0.-0"), to_csd(-0.5, 2));
+    }
+
+    #[test]
+    fn test_to_decimal() {
+        assert_eq!(to_decimal(&String::from("+00-00.+")), 28.5);
+        assert_eq!(to_decimal(&String::from("0.-")), -0.5);
+    }
+
+    #[test]
+    fn test_to_csdfixed() {
+        assert_eq!(String::from("+00-00.+"), to_csdfixed(28.5, 4));
+        assert_eq!(String::from("0.-"), to_csdfixed(-0.5, 4));
+    }
+}
