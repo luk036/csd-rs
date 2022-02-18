@@ -34,7 +34,7 @@ pub fn to_csd(mut num: f64, places: i32) -> String {
     let mut n = if absnum < 1.0 { 0 } else { nn };
     let str = if absnum < 1.0 { "0" } else { "" };
     let mut csd_str = String::from(str);
-    let mut pow2n = (2.0_f64).powf((n - 1) as f64);
+    let mut pow2n = (2.0_f64).powi(n - 1);
     while n > -places {
         if n == 0 {
             csd_str.push('.');
@@ -76,7 +76,7 @@ pub fn to_decimal(csd_str: &str) -> f64 {
         } // else unknown character
     }
     if loc != 0 {
-        num /= (2.0_f64).powf((csd_str.len() - loc) as f64);
+        num /= (2.0_f64).powi((csd_str.len() - loc) as i32);
     }
     num
 }
@@ -97,7 +97,7 @@ pub fn to_csdfixed(mut num: f64, mut nnz: u32) -> String {
     let mut n = if absnum < 1.0 { 0 } else { nn };
     let s = if absnum < 1.0 { "0" } else { "" };
     let mut csd_str = String::from(s);
-    let mut pow2n = (2.0_f64).powf((n - 1) as f64);
+    let mut pow2n = (2.0_f64).powi(n - 1);
     while n > 0 || (nnz > 0 && num.abs() > 1e-100) {
         if n == 0 {
             csd_str.push('.');
