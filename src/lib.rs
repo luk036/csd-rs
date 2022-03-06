@@ -18,7 +18,7 @@
  * @brief Convert to CSD (Canonical Signed Digit) String representation
  *
  * Original author: Harnesser
- * https://sourceforge.net/projects/pycsd/
+ * <https://sourceforge.net/projects/pycsd/>
  * License: GPL2
  *
  * @param num
@@ -84,8 +84,8 @@ pub fn to_decimal(csd_str: &str) -> f64 {
 /**
  * @brief Convert to CSD (Canonical Signed Digit) String representation
  *
- * @param[in] num
- * @param[in] nnz number of non-zero
+ * @param num
+ * @param nnz number of non-zero
  * @return String
  */
 pub fn to_csdfixed(mut num: f64, mut nnz: u32) -> String {
