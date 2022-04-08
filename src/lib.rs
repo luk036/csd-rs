@@ -1,30 +1,20 @@
-/**
- Canonical Signed Digit Functions
-
- Handles:
-  * Decimals
-  *
-  *
-
- eg, +00-00+000.0 or 0.+0000-00+
- Where: '+' is +1
-        '-' is -1
-
- Harnesser
- License: GPL2
-*/
-
-/**
- * @brief Convert to CSD (Canonical Signed Digit) String representation
- *
- * Original author: Harnesser
- * <https://sourceforge.net/projects/pycsd/>
- * License: GPL2
- *
- * @param num
- * @param places
- * @return String
- */
+///  Convert to CSD (Canonical Signed Digit) String representation
+///  
+///  - Original author: Harnesser
+///  - <https://sourceforge.net/projects/pycsd/>
+///  - License: GPL2
+///  
+///  # Examples
+///  
+///  ```
+///  use csd_rs::to_csd;
+///  
+///  let s1 = to_csd(28.5, 2);
+///  let s2 = to_csd(-0.5, 2);
+///
+///  assert_eq!(s1, String::from("+00-00.+0"));
+///  assert_eq!(s2, String::from("0.-0"));
+///  ```
 pub fn to_csd(mut num: f64, places: i32) -> String {
     if num == 0.0 {
         return String::from("0");
@@ -55,12 +45,23 @@ pub fn to_csd(mut num: f64, places: i32) -> String {
     csd_str
 }
 
-/**
- * @brief Convert the CSD String to a decimal
- *
- * @param csd_str
- * @return f64
- */
+///  Convert the CSD (Canonical Signed Digit) to a decimal
+///  
+///  - Original author: Harnesser
+///  - <https://sourceforge.net/projects/pycsd/>
+///  - License: GPL2
+///  
+///  # Examples
+///  
+///  ```
+///  use csd_rs::to_decimal;
+///  
+///  let d1 = to_decimal(&String::from("+00-00.+"));
+///  let d2 = to_decimal(&String::from("0.-"));
+///
+///  assert_eq!(d1, 28.5);
+///  assert_eq!(d2, -0.5);
+///  ```
 pub fn to_decimal(csd_str: &str) -> f64 {
     let mut num: f64 = 0.0;
     let mut loc: usize = 0;
@@ -81,13 +82,23 @@ pub fn to_decimal(csd_str: &str) -> f64 {
     num
 }
 
-/**
- * @brief Convert to CSD (Canonical Signed Digit) String representation
- *
- * @param num
- * @param nnz number of non-zero
- * @return String
- */
+///  Convert to CSD representation with fixed number of non-zero
+///  
+///  - Original author: Harnesser
+///  - <https://sourceforge.net/projects/pycsd/>
+///  - License: GPL2
+///  
+///  # Examples
+///  
+///  ```
+///  use csd_rs::to_csdfixed;
+///  
+///  let s1 = to_csdfixed(28.5, 4);
+///  let s2 = to_csdfixed(-0.5, 4);
+///
+///  assert_eq!(s1, String::from("+00-00.+"));
+///  assert_eq!(s2, String::from("0.-"));
+///  ```
 pub fn to_csdfixed(mut num: f64, mut nnz: u32) -> String {
     if num == 0.0 {
         return String::from("0");
@@ -121,27 +132,4 @@ pub fn to_csdfixed(mut num: f64, mut nnz: u32) -> String {
         }
     }
     csd_str
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{to_csd, to_csdfixed, to_decimal};
-
-    #[test]
-    fn test_to_csd() {
-        assert_eq!(String::from("+00-00.+0"), to_csd(28.5, 2));
-        assert_eq!(String::from("0.-0"), to_csd(-0.5, 2));
-    }
-
-    #[test]
-    fn test_to_decimal() {
-        assert_eq!(to_decimal(&String::from("+00-00.+")), 28.5);
-        assert_eq!(to_decimal(&String::from("0.-")), -0.5);
-    }
-
-    #[test]
-    fn test_to_csdfixed() {
-        assert_eq!(String::from("+00-00.+"), to_csdfixed(28.5, 4));
-        assert_eq!(String::from("0.-"), to_csdfixed(-0.5, 4));
-    }
 }
