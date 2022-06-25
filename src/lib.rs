@@ -133,3 +133,38 @@ pub fn to_csdfixed(mut num: f64, mut nnz: u32) -> String {
     }
     csd_str
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        let result = 2 + 2;
+        assert_eq!(result, 4);
+    }
+
+    #[test]
+    fn test_to_csd() {
+        let s1 = to_csd(28.5, 2);
+        let s2 = to_csd(-0.5, 2);
+        assert_eq!(s1, String::from("+00-00.+0"));
+        assert_eq!(s2, String::from("0.-0"));
+    }
+
+    #[test]
+    fn test_to_decimal() {
+        let d1 = to_decimal(&String::from("+00-00.+"));
+        let d2 = to_decimal(&String::from("0.-"));
+        assert_eq!(d1, 28.5);
+        assert_eq!(d2, -0.5);
+    }
+
+    #[test]
+    fn test_to_csdfixed() {
+        let s1 = to_csdfixed(28.5, 4);
+        let s2 = to_csdfixed(-0.5, 4);
+        assert_eq!(s1, String::from("+00-00.+"));
+        assert_eq!(s2, String::from("0.-"));
+    }
+}
