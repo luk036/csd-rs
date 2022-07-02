@@ -14,15 +14,47 @@
  License: GPL2
 */
 mod lib;
-use crate::lib::{to_csd, to_csdfixed, to_decimal};
+// use crate::lib::{to_csd, to_csdfixed, to_decimal};
+use crate::lib::{to_csd, to_decimal};
 
-fn main() {
-    println!("CHECK: +00-00.+0 == {}", to_csd(28.5, 2));
-    println!("CHECK: 0.-0 == {}", to_csd(-0.5, 2));
+// extern crate structopt;
 
-    println!("CHECK: 28.5 == {}", to_decimal(&String::from("+00-00.+")));
-    println!("CHECK: -0.5 == {}", to_decimal(&String::from("0.-")));
+use structopt::StructOpt;
 
-    println!("CHECK: +00-00.+ == {}", to_csdfixed(28.5, 4));
-    println!("CHECK: 0.- == {}", to_csdfixed(-0.5, 4));
+#[derive(StructOpt)]
+struct Options {
+    #[structopt(short = "c", long = "to_csd")]
+    /// Input a number in decimal, e.g. 56.5
+    decimal: Option<f64>,
+
+    #[structopt(short = "d", long = "to_decimal")]
+    /// Input a number in CSD format, e.g. "+0-0.0-+"
+    csd: Option<String>,
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let options = Options::from_args();
+    // let message = std::env::args().nth(1)
+    //     .expect("Missing the message. Usage: catsay < message>");
+
+    match &options.csd {
+        Some (number) => {
+            println!("The answer is {}", to_decimal(&number));
+        },
+        None => {
+            // ... print the cat as before
+            // println!("Please input a number");
+        }
+    }
+
+    match &options.decimal {
+        Some (number) => {
+            println!("The answer is {}", to_csd(*number, 4));
+        },
+        None => {
+            // ... print the cat as before
+            // println!("Please input a number");
+        }
+    }
+    Ok(())
 }

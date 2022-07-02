@@ -99,6 +99,7 @@ pub fn to_decimal(csd_str: &str) -> f64 {
 /// assert_eq!(s1, String::from("+00-00.+"));
 /// assert_eq!(s2, String::from("0.-"));
 /// ```
+#[allow(dead_code)]
 pub fn to_csdfixed(mut num: f64, mut nnz: u32) -> String {
     if num == 0.0 {
         return String::from("0");
