@@ -1,14 +1,14 @@
 /// Convert to CSD (Canonical Signed Digit) String representation
-/// 
+///
 /// - Original author: Harnesser
 /// - <https://sourceforge.net/projects/pycsd/>
 /// - License: GPL2
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use csd::to_csd;
-/// 
+///
 /// let s1 = to_csd(28.5, 2);
 /// let s2 = to_csd(-0.5, 2);
 ///
@@ -46,16 +46,16 @@ pub fn to_csd(mut num: f64, places: i32) -> String {
 }
 
 /// Convert the CSD (Canonical Signed Digit) to a decimal
-/// 
+///
 /// - Original author: Harnesser
 /// - <https://sourceforge.net/projects/pycsd/>
 /// - License: GPL2
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use csd::to_decimal;
-/// 
+///
 /// let d1 = to_decimal(&String::from("+00-00.+"));
 /// let d2 = to_decimal(&String::from("0.-"));
 ///
@@ -83,16 +83,16 @@ pub fn to_decimal(csd_str: &str) -> f64 {
 }
 
 /// Convert to CSD representation with fixed number of non-zero
-/// 
+///
 /// - Original author: Harnesser
 /// - <https://sourceforge.net/projects/pycsd/>
 /// - License: GPL2
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use csd::to_csdfixed;
-/// 
+///
 /// let s1 = to_csdfixed(28.5, 4);
 /// let s2 = to_csdfixed(-0.5, 4);
 ///

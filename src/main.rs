@@ -15,7 +15,7 @@
 */
 mod lib;
 // use crate::lib::{to_csd, to_csdfixed, to_decimal};
-use crate::lib::{to_csd, to_decimal};
+use crate::lib::{to_csd, to_csdfixed, to_decimal};
 
 // extern crate structopt;
 
@@ -24,12 +24,24 @@ use structopt::StructOpt;
 #[derive(StructOpt)]
 struct Options {
     #[structopt(short = "c", long = "to_csd")]
-    /// Input a number in decimal, e.g. 56.5
+    /// Convert a decimal, e.g. 56.3, to CSD string up to p places.
     decimal: Option<f64>,
 
+    #[structopt(short = "p", long = "places", default_value = "4")]
+    /// How many places
+    places: i32,
+
     #[structopt(short = "d", long = "to_decimal")]
-    /// Input a number in CSD format, e.g. "+0-0.0-+"
+    /// Convert a number in CSD format, e.g. "+0-0.0-+", to a decimal
     csd: Option<String>,
+
+    #[structopt(short = "f", long = "to_csdfixed")]
+    /// Convert a decimal, e.g. 56.3, to CSD string up to z non-zeros
+    decimal2: Option<f64>,
+
+    #[structopt(short = "z", long = "nnz", default_value = "4")]
+    /// Number of non-zeros 
+    nnz: u32,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -38,9 +50,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //     .expect("Missing the message. Usage: catsay < message>");
 
     match &options.csd {
-        Some (number) => {
-            println!("The answer is {}", to_decimal(&number));
-        },
+        Some(number) => {
+            println!("The ans is {}", to_decimal(&number));
+        }
         None => {
             // ... print the cat as before
             // println!("Please input a number");
@@ -48,9 +60,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     match &options.decimal {
-        Some (number) => {
-            println!("The answer is {}", to_csd(*number, 4));
-        },
+        Some(number) => {
+            println!("The ans is {}", to_csd(*number, options.places));
+        }
+        None => {
+            // ... print the cat as before
+            // println!("Please input a number");
+        }
+    }
+
+    match &options.decimal2 {
+        Some(number) => {
+            println!("The ans is {}", to_csdfixed(*number, options.nnz));
+        }
         None => {
             // ... print the cat as before
             // println!("Please input a number");
