@@ -138,6 +138,7 @@ pub fn to_csdfixed(mut num: f64, mut nnz: u32) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use quickcheck_macros::quickcheck;
 
     #[test]
     fn it_works() {
@@ -167,5 +168,11 @@ mod tests {
         let s2 = to_csdfixed(-0.5, 4);
         assert_eq!(s1, String::from("+00-00.+"));
         assert_eq!(s2, String::from("0.-"));
+    }
+
+    #[quickcheck]
+    fn test_csd(d: i32) -> bool {
+        let f = d as f64;
+        f == to_decimal(&to_csd(f, 2))
     }
 }

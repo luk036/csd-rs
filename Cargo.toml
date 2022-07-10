@@ -12,3 +12,6 @@ path = "src/lib.rs"
 [dependencies]
 # rand = "0.5.5"
 structopt = "0.2.15"
+
+quickcheck = "1"
+quickcheck_macros = "1"
