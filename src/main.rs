@@ -40,7 +40,7 @@ struct Options {
     decimal2: Option<f64>,
 
     #[structopt(short = "z", long = "nnz", default_value = "4")]
-    /// Number of non-zeros 
+    /// Number of non-zeros
     nnz: u32,
 }
 
