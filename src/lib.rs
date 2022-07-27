@@ -56,6 +56,47 @@ pub fn to_csd(mut num: f64, places: i32) -> String {
 /// ```
 /// use csd::to_decimal;
 ///
+/// let d1 = to_decimal2(&String::from("+00-00.+"));
+/// let d2 = to_decimal2(&String::from("0.-"));
+///
+/// assert_eq!(d1, 28.5);
+/// assert_eq!(d2, -0.5);
+/// ```
+pub fn to_decimal2(csd_str: &[char]) -> f64 {
+    let mut num: f64 = 0.0;
+    let mut loc: usize = 0;
+    let mut i: usize = 0;
+    let mut remaining = csd_str;
+    while let [c, tail @ ..] = remaining {
+        if *c == '0' {
+            num *= 2.0;
+        } else if *c == '+' {
+            num = num * 2.0 + 1.0;
+        } else if *c == '-' {
+            num = num * 2.0 - 1.0;
+        } else if *c == '.' {
+            loc = i + 1;
+        } // else unknown character
+        i += 1;
+        remaining = tail;
+    }
+    if loc != 0 {
+        num /= (2.0_f64).powi((csd_str.len() - loc) as i32);
+    }
+    num
+}
+
+/// Convert the CSD (Canonical Signed Digit) to a decimal
+///
+/// - Original author: Harnesser
+/// - <https://sourceforge.net/projects/pycsd/>
+/// - License: GPL2
+///
+/// # Examples
+///
+/// ```
+/// use csd::to_decimal;
+///
 /// let d1 = to_decimal(&String::from("+00-00.+"));
 /// let d2 = to_decimal(&String::from("0.-"));
 ///
