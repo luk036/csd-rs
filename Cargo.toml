@@ -13,5 +13,6 @@ path = "src/lib.rs"
 # rand = "0.5.5"
 structopt = "0.2.15"
 
+[dev-dependencies]
 quickcheck = "1"
 quickcheck_macros = "1"
