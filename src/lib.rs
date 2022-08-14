@@ -169,17 +169,15 @@ pub fn longest_repeated_substring(cstr: &[char]) -> String {
     let n = cstr.len();
     let mut lcsre = vec![vec![0; n + 1]; n + 1];
 
-    let mut res_length = 0;  // To store length of result
+    let mut res_length = 0; // To store length of result
 
     // building table in bottom-up manner
     let mut index = 0;
     for i in 1..(n + 1) {
         for j in (i + 1)..(n + 1) {
-
             // (j-i) > lcsre[i-1][j-1] to remove
             // overlapping
-            if cstr[i - 1] == cstr[j - 1] &&
-                    lcsre[i - 1][j - 1] < (j - i) {
+            if cstr[i - 1] == cstr[j - 1] && lcsre[i - 1][j - 1] < (j - i) {
                 lcsre[i][j] = lcsre[i - 1][j - 1] + 1;
 
                 // updating maximum length of the
@@ -198,7 +196,7 @@ pub fn longest_repeated_substring(cstr: &[char]) -> String {
     // If we have non-empty result, then insert
     // all characters from first character to
     // last character of string
-    let mut res = String::from("");  // To store result
+    let mut res = String::from(""); // To store result
     if res_length > 0 {
         for i in (index - res_length + 1)..(index + 1) {
             res.push(cstr[i - 1]);
