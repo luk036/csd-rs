@@ -51,7 +51,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match &options.csd {
         Some(number) => {
-            println!("The ans is {}", to_decimal(&number));
+            println!("The ans is {}", to_decimal(number));
         }
         None => {
             // ... print the cat as before
