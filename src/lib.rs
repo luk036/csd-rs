@@ -24,23 +24,24 @@ pub fn to_csd(mut num: f64, places: i32) -> String {
     let mut n = if absnum < 1.0 { 0 } else { nn };
     let str = if absnum < 1.0 { "0" } else { "" };
     let mut csd_str = String::from(str);
-    let mut pow2n = (2.0_f64).powi(n - 1);
+    let mut pow2n = (2.0_f64).powi(n);
     while n > -places {
         if n == 0 {
             csd_str.push('.');
         }
-        n -= 1;
-        let d = 1.5 * num;
+        let pow2n_half = pow2n / 2.0;
+        let d = 3.0 * num;
         if d > pow2n {
             csd_str.push('+');
-            num -= pow2n;
+            num -= pow2n_half;
         } else if d < -pow2n {
             csd_str.push('-');
-            num += pow2n;
+            num += pow2n_half;
         } else {
             csd_str.push('0');
         }
-        pow2n /= 2.0;
+        pow2n = pow2n_half;
+        n -= 1;
     }
     csd_str
 }
@@ -61,6 +62,7 @@ pub fn to_csd(mut num: f64, places: i32) -> String {
 ///
 /// assert_eq!(d1, 28);
 /// ```
+#[allow(dead_code)]
 pub const fn to_decimal_i(csd_str: &[char]) -> i32 {
     let mut num: i32 = 0;
     let mut remaining = csd_str;
@@ -141,25 +143,26 @@ pub fn to_csdfixed(mut num: f64, mut nnz: u32) -> String {
     let mut n = if absnum < 1.0 { 0 } else { nn };
     let s = if absnum < 1.0 { "0" } else { "" };
     let mut csd_str = String::from(s);
-    let mut pow2n = (2.0_f64).powi(n - 1);
+    let mut pow2n = (2.0_f64).powi(n);
     while n > 0 || (nnz > 0 && num.abs() > 1e-100) {
         if n == 0 {
             csd_str.push('.');
         }
-        n -= 1;
-        let d = 1.5 * num;
+        let pow2n_half = pow2n / 2.0;
+        let d = 3.0 * num;
         if d > pow2n {
             csd_str.push('+');
-            num -= pow2n;
+            num -= pow2n_half;
             nnz -= 1;
         } else if d < -pow2n {
             csd_str.push('-');
-            num += pow2n;
+            num += pow2n_half;
             nnz -= 1;
         } else {
             csd_str.push('0');
         }
-        pow2n /= 2.0;
+        pow2n = pow2n_half;
+        n -= 1;
         if nnz == 0 {
             num = 0.0;
         }
