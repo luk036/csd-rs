@@ -21,9 +21,8 @@ pub fn to_csd(mut num: f64, places: i32) -> String {
     }
     let absnum = num.abs();
     let nn = (absnum * 1.5).log2().ceil() as i32;
-    let mut n = if absnum < 1.0 { 0 } else { nn };
-    let str = if absnum < 1.0 { "0" } else { "" };
-    let mut csd_str = String::from(str);
+    let (mut n, s) = if absnum < 1.0 { (0, "0") } else { (nn, "") };
+    let mut csd_str = String::from(s);
     let mut pow2n = (2.0_f64).powi(n);
     while n > -places {
         if n == 0 {
@@ -140,8 +139,7 @@ pub fn to_csdfixed(mut num: f64, mut nnz: u32) -> String {
     }
     let absnum = num.abs();
     let nn = (absnum * 1.5).log2().ceil() as i32;
-    let mut n = if absnum < 1.0 { 0 } else { nn };
-    let s = if absnum < 1.0 { "0" } else { "" };
+    let (mut n, s) = if absnum < 1.0 { (0, "0") } else { (nn, "") };
     let mut csd_str = String::from(s);
     let mut pow2n = (2.0_f64).powi(n);
     while n > 0 || (nnz > 0 && num.abs() > 1e-100) {
