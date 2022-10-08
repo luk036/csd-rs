@@ -20,29 +20,29 @@ pub fn to_csd(mut num: f64, places: i32) -> String {
         return String::from("0");
     }
     let absnum = num.abs();
-    let nn = (absnum * 1.5).log2().ceil() as i32;
-    let (mut n, s) = if absnum < 1.0 { (0, "0") } else { (nn, "") };
-    let mut csd_str = String::from(s);
-    let mut pow2n = (2.0_f64).powi(n);
-    while n > -places {
-        if n == 0 {
-            csd_str.push('.');
+    let temp = (absnum * 1.5).log2().ceil() as i32;
+    let (mut rem, s) = if absnum < 1.0 { (0, "0") } else { (temp, "") };
+    let mut csd = String::from(s);
+    let mut pow2n = (2.0_f64).powi(rem);
+    while rem > -places {
+        if rem == 0 {
+            csd.push('.');
         }
         let pow2n_half = pow2n / 2.0;
-        let d = 3.0 * num;
-        if d > pow2n {
-            csd_str.push('+');
+        let det = 3.0 * num;
+        if det > pow2n {
+            csd.push('+');
             num -= pow2n_half;
-        } else if d < -pow2n {
-            csd_str.push('-');
+        } else if det < -pow2n {
+            csd.push('-');
             num += pow2n_half;
         } else {
-            csd_str.push('0');
+            csd.push('0');
         }
         pow2n = pow2n_half;
-        n -= 1;
+        rem -= 1;
     }
-    csd_str
+    csd
 }
 
 /// Convert the CSD (Canonical Signed Digit) to a decimal
@@ -62,16 +62,16 @@ pub fn to_csd(mut num: f64, places: i32) -> String {
 /// assert_eq!(d1, 28);
 /// ```
 #[allow(dead_code)]
-pub const fn to_decimal_i(csd_str: &[char]) -> i32 {
+pub const fn to_decimal_i(csd: &[char]) -> i32 {
     let mut num: i32 = 0;
-    let mut remaining = csd_str;
-    while let [c, tail @ ..] = remaining {
-        if *c == '0' {
+    let mut remaining = csd;
+    while let [digit, tail @ ..] = remaining {
+        if *digit == '0' {
             num *= 2;
-        } else if *c == '+' {
-            num = num * 2 + 1;
-        } else if *c == '-' {
-            num = num * 2 - 1;
+        } else if *digit == '+' {
+            num = 2 * num + 1;
+        } else if *digit == '-' {
+            num = 2 * num - 1;
         } // else unknown character
         remaining = tail;
     }
@@ -95,22 +95,22 @@ pub const fn to_decimal_i(csd_str: &[char]) -> i32 {
 /// assert_eq!(d1, 28.5);
 /// assert_eq!(d2, -0.5);
 /// ```
-pub fn to_decimal(csd_str: &str) -> f64 {
+pub fn to_decimal(csd: &str) -> f64 {
     let mut num: f64 = 0.0;
     let mut loc: usize = 0;
-    for (i, c) in csd_str.chars().enumerate() {
-        if c == '0' {
+    for (pos, digit) in csd.chars().enumerate() {
+        if digit == '0' {
             num *= 2.0;
-        } else if c == '+' {
+        } else if digit == '+' {
             num = num * 2.0 + 1.0;
-        } else if c == '-' {
+        } else if digit == '-' {
             num = num * 2.0 - 1.0;
-        } else if c == '.' {
-            loc = i + 1;
+        } else if digit == '.' {
+            loc = pos + 1;
         } // else unknown character
     }
     if loc != 0 {
-        num /= (2.0_f64).powi((csd_str.len() - loc) as i32);
+        num /= (2.0_f64).powi((csd.len() - loc) as i32);
     }
     num
 }
@@ -139,33 +139,33 @@ pub fn to_csdfixed(mut num: f64, mut nnz: u32) -> String {
     }
     let absnum = num.abs();
     let nn = (absnum * 1.5).log2().ceil() as i32;
-    let (mut n, s) = if absnum < 1.0 { (0, "0") } else { (nn, "") };
-    let mut csd_str = String::from(s);
-    let mut pow2n = (2.0_f64).powi(n);
-    while n > 0 || (nnz > 0 && num.abs() > 1e-100) {
-        if n == 0 {
-            csd_str.push('.');
+    let (mut rem, s) = if absnum < 1.0 { (0, "0") } else { (nn, "") };
+    let mut csd = String::from(s);
+    let mut pow2n = (2.0_f64).powi(rem);
+    while rem > 0 || (nnz > 0 && num.abs() > 1e-100) {
+        if rem == 0 {
+            csd.push('.');
         }
         let pow2n_half = pow2n / 2.0;
-        let d = 3.0 * num;
-        if d > pow2n {
-            csd_str.push('+');
+        let det = 3.0 * num;
+        if det > pow2n {
+            csd.push('+');
             num -= pow2n_half;
             nnz -= 1;
-        } else if d < -pow2n {
-            csd_str.push('-');
+        } else if det < -pow2n {
+            csd.push('-');
             num += pow2n_half;
             nnz -= 1;
         } else {
-            csd_str.push('0');
+            csd.push('0');
         }
         pow2n = pow2n_half;
-        n -= 1;
+        rem -= 1;
         if nnz == 0 {
             num = 0.0;
         }
     }
-    csd_str
+    csd
 }
 
 // Rust program to find the longest repeated
@@ -175,15 +175,15 @@ pub fn to_csdfixed(mut num: f64, mut nnz: u32) -> String {
 // substring in cstr
 #[allow(dead_code)]
 pub fn longest_repeated_substring(cstr: &[char]) -> String {
-    let n = cstr.len();
-    let mut lcsre = vec![vec![0; n + 1]; n + 1];
+    let rem = cstr.len();
+    let mut lcsre = vec![vec![0; rem + 1]; rem + 1];
 
     let mut res_length = 0; // To store length of result
 
     // building table in bottom-up manner
     let mut index = 0;
-    for i in 1..(n + 1) {
-        for j in (i + 1)..(n + 1) {
+    for i in 1..(rem + 1) {
+        for j in (i + 1)..(rem + 1) {
             // (j-i) > lcsre[i-1][j-1] to remove
             // overlapping
             if cstr[i - 1] == cstr[j - 1] && lcsre[i - 1][j - 1] < (j - i) {
