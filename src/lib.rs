@@ -45,6 +45,47 @@ pub fn to_csd(mut num: f64, places: i32) -> String {
     csd
 }
 
+/// Convert to CSD (Canonical Signed Digit) String representation
+///
+/// - Original author: Harnesser
+/// - <https://sourceforge.net/projects/pycsd/>
+/// - License: GPL2
+///
+/// # Examples
+///
+/// ```
+/// use csd::to_csd;
+///
+/// let s1 = to_csd_i(28);
+///
+/// assert_eq!(s1, String::from("+00-00"));
+/// ```
+#[allow(dead_code)]
+pub fn to_csd_i(mut num: i32) -> String {
+    if num == 0 {
+        return String::from("0");
+    }
+    let absnum = num.abs() as f64;
+    let temp = (absnum * 1.5).log2().ceil() as i32;
+    let mut csd = String::from("");
+    let mut pow2n = 2_f64.powi(temp) as i32;
+    while pow2n > 1 {
+        let pow2n_half = pow2n / 2;
+        let det = 3 * num;
+        if det > pow2n {
+            csd.push('+');
+            num -= pow2n_half;
+        } else if det < -pow2n {
+            csd.push('-');
+            num += pow2n_half;
+        } else {
+            csd.push('0');
+        }
+        pow2n = pow2n_half;
+    }
+    csd
+}
+
 /// Convert the CSD (Canonical Signed Digit) to a decimal
 ///
 /// - Original author: Harnesser
