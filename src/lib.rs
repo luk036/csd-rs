@@ -21,26 +21,26 @@ pub fn to_csd(mut num: f64, places: i32) -> String {
     }
     let absnum = num.abs();
     let temp = (absnum * 1.5).log2().ceil() as i32;
-    let (mut rem, s) = if absnum < 1.0 { (0, "0") } else { (temp, "") };
+    let (rem, s) = if absnum < 1.0 { (0, "0") } else { (temp, "") };
     let mut csd = String::from(s);
-    let mut pow2n = (2.0_f64).powi(rem);
-    while rem > -places {
-        if rem == 0 {
+    let mut p2n = (2.0_f64).powi(rem);
+    let eps = (2.0_f64).powi(-places);
+    while p2n > eps {
+        if p2n == 1.0 {
             csd.push('.');
         }
-        let pow2n_half = pow2n / 2.0;
+        let p2n_half = p2n / 2.0;
         let det = 3.0 * num;
-        if det > pow2n {
+        if det > p2n {
             csd.push('+');
-            num -= pow2n_half;
-        } else if det < -pow2n {
+            num -= p2n_half;
+        } else if det < -p2n {
             csd.push('-');
-            num += pow2n_half;
+            num += p2n_half;
         } else {
             csd.push('0');
         }
-        pow2n = pow2n_half;
-        rem -= 1;
+        p2n = p2n_half;
     }
     csd
 }
@@ -54,7 +54,7 @@ pub fn to_csd(mut num: f64, places: i32) -> String {
 /// # Examples
 ///
 /// ```
-/// use csd::to_csd;
+/// use csd::to_csd_i;
 ///
 /// let s1 = to_csd_i(28);
 ///
@@ -68,20 +68,20 @@ pub fn to_csd_i(mut num: i32) -> String {
     let absnum = num.abs() as f64;
     let temp = (absnum * 1.5).log2().ceil() as i32;
     let mut csd = String::from("");
-    let mut pow2n = 2_f64.powi(temp) as i32;
-    while pow2n > 1 {
-        let pow2n_half = pow2n / 2;
+    let mut p2n = 2_f64.powi(temp) as i32;
+    while p2n > 1 {
+        let p2n_half = p2n / 2;
         let det = 3 * num;
-        if det > pow2n {
+        if det > p2n {
             csd.push('+');
-            num -= pow2n_half;
-        } else if det < -pow2n {
+            num -= p2n_half;
+        } else if det < -p2n {
             csd.push('-');
-            num += pow2n_half;
+            num += p2n_half;
         } else {
             csd.push('0');
         }
-        pow2n = pow2n_half;
+        p2n = p2n_half;
     }
     csd
 }
@@ -180,28 +180,27 @@ pub fn to_csdfixed(mut num: f64, mut nnz: u32) -> String {
     }
     let absnum = num.abs();
     let nn = (absnum * 1.5).log2().ceil() as i32;
-    let (mut rem, s) = if absnum < 1.0 { (0, "0") } else { (nn, "") };
+    let (rem, s) = if absnum < 1.0 { (0, "0") } else { (nn, "") };
     let mut csd = String::from(s);
-    let mut pow2n = (2.0_f64).powi(rem);
-    while rem > 0 || (nnz > 0 && num.abs() > 1e-100) {
-        if rem == 0 {
+    let mut p2n = (2.0_f64).powi(rem);
+    while p2n > 1.0 || (nnz > 0 && num.abs() > 1e-100) {
+        if p2n == 1.0 {
             csd.push('.');
         }
-        let pow2n_half = pow2n / 2.0;
+        let p2n_half = p2n / 2.0;
         let det = 3.0 * num;
-        if det > pow2n {
+        if det > p2n {
             csd.push('+');
-            num -= pow2n_half;
+            num -= p2n_half;
             nnz -= 1;
-        } else if det < -pow2n {
+        } else if det < -p2n {
             csd.push('-');
-            num += pow2n_half;
+            num += p2n_half;
             nnz -= 1;
         } else {
             csd.push('0');
         }
-        pow2n = pow2n_half;
-        rem -= 1;
+        p2n = p2n_half;
         if nnz == 0 {
             num = 0.0;
         }
@@ -295,6 +294,14 @@ mod tests {
     fn test_csd(d: i32) -> bool {
         let f = d as f64;
         f == to_decimal(&to_csd(f, 2))
+    }
+
+    #[quickcheck]
+    fn test_csd_i(d: i32) -> bool {
+        let d = d / 4; // prevemt overflow
+        let csd = to_csd_i(d);
+        let chars: Vec<_> = csd.chars().collect();
+        d == to_decimal_i(&chars)
     }
 
     #[test]
