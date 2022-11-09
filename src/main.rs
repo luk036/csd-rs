@@ -13,9 +13,10 @@
  Harnesser
  License: GPL2
 */
-mod lib;
+// mod lib;
 // use crate::lib::{to_csd, to_csdfixed, to_decimal};
-use crate::lib::{to_csd, to_csdfixed, to_decimal};
+mod csd;
+use crate::csd::{to_csd, to_csdfixed, to_decimal};
 
 // extern crate structopt;
 

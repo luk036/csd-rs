@@ -45,6 +45,7 @@ pub fn longest_repeated_substring(cstr: &[char]) -> String {
 }
 
 // Driver Code
+#[allow(dead_code)]
 fn main() {
     let cstr = String::from("+-00+-00+-00+-0");
     println!(
