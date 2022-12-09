@@ -20,8 +20,11 @@ pub fn to_csd(mut num: f64, places: i32) -> String {
         return String::from("0");
     }
     let absnum = num.abs();
-    let temp = (absnum * 1.5).log2().ceil() as i32;
-    let (rem, s) = if absnum < 1.0 { (0, "0") } else { (temp, "") };
+    let (rem, s) = if absnum < 1.0 {
+        (0, "0")
+    } else {
+        ((absnum * 1.5).log2().ceil() as i32, "")
+    };
     let mut csd = String::from(s);
     let mut p2n = (2.0_f64).powi(rem);
     let eps = (2.0_f64).powi(-places);
@@ -249,7 +252,6 @@ pub fn longest_repeated_substring(cstr: &[char]) -> String {
             res.push(cstr[i - 1]);
         }
     }
-
     res
 }
 
