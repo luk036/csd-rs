@@ -1,8 +1,15 @@
-// Rust program to find the longest repeated
-// non-overlapping substring
-
-// Returns the longest repeating non-overlapping
-// substring in cstr
+/// Find the longest repeating non-overlapping substring in cstr
+///
+/// # Examples
+///
+/// ```
+/// use csd::lcsre::longest_repeated_substring;
+///
+/// let chars: Vec<_> = String::from("+-00+-00+-00+-0").chars().collect();
+/// let s1 = longest_repeated_substring(&chars);
+///
+/// assert_eq!(s1, String::from("+-00+-0"));
+/// ```
 pub fn longest_repeated_substring(cstr: &[char]) -> String {
     let n = cstr.len();
     let mut lcsre = vec![vec![0; n + 1]; n + 1];
@@ -44,14 +51,14 @@ pub fn longest_repeated_substring(cstr: &[char]) -> String {
     res
 }
 
-// Driver Code
-#[allow(dead_code)]
-fn main() {
-    let cstr = String::from("+-00+-00+-00+-0");
-    println!(
-        "{}",
-        longest_repeated_substring(&cstr.chars().collect::<Vec<char>>())
-    );
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-// This code is contributed by ita_c
+    #[test]
+    fn test_lcsre() {
+        let cstr = String::from("+-00+-00+-00+-0");
+        let res = longest_repeated_substring(&cstr.chars().collect::<Vec<char>>());
+        assert_eq!(res, String::from("+-00+-0"));
+    }
+}
