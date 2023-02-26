@@ -209,11 +209,18 @@ pub fn to_csdfixed(mut num: f64, mut nnz: u32) -> String {
     csd
 }
 
-// Rust program to find the longest repeated
-// non-overlapping substring
-
-// Returns the longest repeating non-overlapping
-// substring in cstr
+/// Find the longest repeating non-overlapping substring in cstr
+///
+/// # Examples
+///
+/// ```
+/// use csd::csd::longest_repeated_substring;
+///
+/// let chars: Vec<_> = String::from("+-00+-00+-00+-0").chars().collect();
+/// let s1 = longest_repeated_substring(&chars);
+///
+/// assert_eq!(s1, String::from("+-00+-0"));
+/// ```
 #[allow(dead_code)]
 pub fn longest_repeated_substring(cstr: &[char]) -> String {
     let rem = cstr.len();
