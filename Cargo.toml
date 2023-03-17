@@ -11,7 +11,7 @@ path = "src/lib.rs"
 
 [dependencies]
 # rand = "0.5.5"
-structopt = "0.2.15"
+structopt = "0.2.18"
 
 [dev-dependencies]
 quickcheck = "1"
