@@ -1,3 +1,17 @@
+/**
+ * https://thecodingbot.com/find-the-greatest-power-of-2-less-than-or-equal-to-a-given-number/
+ *
+ */
+#[inline]
+fn highest_power_of_two_in(mut x: u32) -> u32 {
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+    x ^ (x >> 1)
+}
+
 /// Convert to CSD (Canonical Signed Digit) String representation
 ///
 /// - Original author: Harnesser
@@ -67,10 +81,12 @@ pub fn to_csd_i(mut num: i32) -> String {
     if num == 0 {
         return String::from("0");
     }
-    let absnum = num.abs() as f64;
-    let temp = (absnum * 1.5).log2().ceil() as i32;
+    // let absnum = num.abs() as f64;
+    // let temp = (absnum * 1.5).log2().ceil() as i32;
+    // let mut p2n = 2_f64.powi(temp) as i32;
+    let temp = (num.abs() * 3 / 2) as u32;
+    let mut p2n = highest_power_of_two_in(temp) as i32 * 2;
     let mut csd = String::from("");
-    let mut p2n = 2_f64.powi(temp) as i32;
     while p2n > 1 {
         let p2n_half = p2n / 2;
         let det = 3 * num;
