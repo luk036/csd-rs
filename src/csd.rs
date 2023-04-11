@@ -140,6 +140,8 @@ pub const fn to_decimal_i(csd: &[char]) -> i32 {
 /// ```
 pub fn to_decimal(csd: &str) -> f64 {
     let mut num: f64 = 0.0;
+
+    // Handle integral part
     let mut loc: usize = 0;
     for (pos, digit) in csd.chars().enumerate() {
         if digit == '0' {
@@ -150,10 +152,24 @@ pub fn to_decimal(csd: &str) -> f64 {
             num = num * 2.0 - 1.0;
         } else if digit == '.' {
             loc = pos + 1;
+            break;
         } // else unknown character
     }
-    if loc != 0 {
-        num /= (2.0_f64).powi((csd.len() - loc) as i32);
+    if loc == 0 {
+        return num;
+    }
+    // Handle fraction part
+    let mut scale = 0.5;
+    let chars: Vec<_> = csd.chars().collect();
+    for digit in chars.iter().skip(loc) {
+        if *digit == '0' {
+            /* pass */
+        } else if *digit == '+' {
+            num += scale;
+        } else if *digit == '-' {
+            num -= scale;
+        } // else unknown character
+        scale /= 2.0;
     }
     num
 }
@@ -246,13 +262,13 @@ mod tests {
 
     #[quickcheck]
     fn test_csd(d: i32) -> bool {
-        let f = d as f64 / 4.0;
+        let f = d as f64;
         f == to_decimal(&to_csd(f, 2))
     }
 
     #[quickcheck]
     fn test_csd_i(d: i32) -> bool {
-        let d = d / 3; // prevemt overflow
+        let d = d / 3; // prevent overflow
         let csd = to_csd_i(d);
         let chars: Vec<_> = csd.chars().collect();
         d == to_decimal_i(&chars)
