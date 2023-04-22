@@ -1,9 +1,20 @@
-/**
- * https://thecodingbot.com/find-the-greatest-power-of-2-less-than-or-equal-to-a-given-number/
- *
- */
+/// Find the highest power of two less than or equal to a given number
+///
+/// https://thecodingbot.com/find-the-greatest-power-of-2-less-than-or-equal-to-a-given-number/
+///
+/// # Examples
+///
+/// ```
+/// use csd::csd::highest_power_of_two_in;
+///
+/// let s1 = highest_power_of_two_in(14);
+/// let s2 = highest_power_of_two_in(8);
+///
+/// assert_eq!(s1, 8);
+/// assert_eq!(s2, 8);
+/// ```
 #[inline]
-fn highest_power_of_two_in(mut x: u32) -> u32 {
+pub fn highest_power_of_two_in(mut x: u32) -> u32 {
     x |= x >> 1;
     x |= x >> 2;
     x |= x >> 4;
