@@ -45,19 +45,19 @@ pub fn to_csd(mut num: f64, places: i32) -> String {
         return String::from("0");
     }
     let absnum = num.abs();
-    let (rem, s) = if absnum < 1.0 {
+    let (mut rem, s) = if absnum < 1.0 {
         (0, "0")
     } else {
         ((absnum * 1.5).log2().ceil() as i32, "")
     };
     let mut csd = String::from(s);
     let mut p2n = (2.0_f64).powi(rem);
-    let eps = (2.0_f64).powi(-places);
-    while p2n > eps {
-        if p2n == 1.0 {
+    while rem > -places {
+        if rem == 0 {
             csd.push('.');
         }
         p2n /= 2.0;
+        rem -= 1;
         let det = 1.5 * num;
         if det > p2n {
             csd.push('+');
@@ -225,13 +225,14 @@ pub fn to_csdfixed(mut num: f64, mut nnz: u32) -> String {
     }
     let absnum = num.abs();
     let nn = (absnum * 1.5).log2().ceil() as i32;
-    let (rem, s) = if absnum < 1.0 { (0, "0") } else { (nn, "") };
+    let (mut rem, s) = if absnum < 1.0 { (0, "0") } else { (nn, "") };
     let mut csd = String::from(s);
     let mut p2n = (2.0_f64).powi(rem);
-    while p2n > 1.0 || (nnz > 0 && num.abs() > 1e-100) {
-        if p2n == 1.0 {
+    while rem > 0 || (nnz > 0 && num.abs() > 1e-100) {
+        if rem == 0 {
             csd.push('.');
         }
+        rem -= 1;
         p2n /= 2.0;
         let det = 1.5 * num;
         if det > p2n {
