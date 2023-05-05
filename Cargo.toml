@@ -11,8 +11,13 @@ path = "src/lib.rs"
 
 [dependencies]
 # rand = "0.5.5"
-structopt = "0.2.18"
+structopt = "0.3.26"
 
 [dev-dependencies]
 quickcheck = "1"
 quickcheck_macros = "1"
+criterion = "0.3"
+
+[[bench]]
+name = "my_benchmark"
+harness = false
