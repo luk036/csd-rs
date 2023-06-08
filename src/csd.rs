@@ -40,33 +40,37 @@ pub fn highest_power_of_two_in(mut x: u32) -> u32 {
 /// assert_eq!(s1, String::from("+00-00.+0"));
 /// assert_eq!(s2, String::from("0.-0"));
 /// ```
-pub fn to_csd(mut num: f64, places: i32) -> String {
+pub fn to_csd(num: f64, places: i32) -> String {
     if num == 0.0 {
-        return String::from("0");
+        return "0".to_string();
     }
     let absnum = num.abs();
-    let (mut rem, s) = if absnum < 1.0 {
-        (0, "0")
+    let (rem, csd) = if absnum < 1.0 {
+        (0, "0".to_string())
     } else {
-        ((absnum * 1.5).log2().ceil() as i32, "")
+        let rem = (absnum * 1.5).log2().ceil() as i32;
+        (rem, "".to_string())
     };
-    let mut csd = String::from(s);
-    let mut p2n = (2.0_f64).powi(rem);
+    let mut p2n = 2.0_f64.powi(rem);
+    let mut num = num;
+    let mut rem = rem;
+    let mut csd = csd;
+
     while rem > -places {
         if rem == 0 {
-            csd.push('.');
+            csd += ".";
         }
         p2n /= 2.0;
         rem -= 1;
         let det = 1.5 * num;
         if det > p2n {
-            csd.push('+');
+            csd += "+";
             num -= p2n;
         } else if det < -p2n {
-            csd.push('-');
+            csd += "-";
             num += p2n;
         } else {
-            csd.push('0');
+            csd += "0";
         }
     }
     csd
@@ -88,27 +92,25 @@ pub fn to_csd(mut num: f64, places: i32) -> String {
 /// assert_eq!(s1, String::from("+00-00"));
 /// ```
 #[allow(dead_code)]
-pub fn to_csd_i(mut num: i32) -> String {
+pub fn to_csd_i(num: i32) -> String {
     if num == 0 {
-        return String::from("0");
+        return "0".to_string();
     }
-    // let absnum = num.abs() as f64;
-    // let temp = (absnum * 1.5).log2().ceil() as i32;
-    // let mut p2n = 2_f64.powi(temp) as i32;
     let temp = (num.abs() * 3 / 2) as u32;
     let mut p2n = highest_power_of_two_in(temp) as i32 * 2;
-    let mut csd = String::from("");
+    let mut csd = "".to_string();
+    let mut num = num;
     while p2n > 1 {
         let p2n_half = p2n / 2;
         let det = 3 * num;
         if det > p2n {
-            csd.push('+');
+            csd += "+";
             num -= p2n_half;
         } else if det < -p2n {
-            csd.push('-');
+            csd += "-";
             num += p2n_half;
         } else {
-            csd.push('0');
+            csd += "0";
         }
         p2n = p2n_half;
     }
@@ -136,13 +138,12 @@ pub const fn to_decimal_i(csd: &[char]) -> i32 {
     let mut num: i32 = 0;
     let mut remaining = csd;
     while let [digit, tail @ ..] = remaining {
-        if *digit == '0' {
-            num *= 2;
-        } else if *digit == '+' {
-            num = 2 * num + 1;
-        } else if *digit == '-' {
-            num = 2 * num - 1;
-        } // else unknown character
+        match *digit {
+            '0' => num *= 2,
+            '+' => num = num * 2 + 1,
+            '-' => num = num * 2 - 1,
+            _ => panic!("Work with 0, +, - only"),
+        }
         remaining = tail;
     }
     num
@@ -167,35 +168,30 @@ pub const fn to_decimal_i(csd: &[char]) -> i32 {
 /// ```
 pub fn to_decimal(csd: &str) -> f64 {
     let mut num: f64 = 0.0;
-
-    // Handle integral part
     let mut loc: usize = 0;
     for (pos, digit) in csd.chars().enumerate() {
-        if digit == '0' {
-            num *= 2.0;
-        } else if digit == '+' {
-            num = num * 2.0 + 1.0;
-        } else if digit == '-' {
-            num = num * 2.0 - 1.0;
-        } else if digit == '.' {
-            loc = pos + 1;
-            break;
-        } // else unknown character
+        match digit {
+            '0' => num *= 2.0,
+            '+' => num = num * 2.0 + 1.0,
+            '-' => num = num * 2.0 - 1.0,
+            '.' => {
+                loc = pos + 1;
+                break;
+            }
+            _ => panic!("Work with 0, +, -, . only"),
+        }
     }
     if loc == 0 {
         return num;
     }
-    // Handle fraction part
     let mut scale = 0.5;
-    let chars: Vec<_> = csd.chars().collect();
-    for digit in chars.iter().skip(loc) {
-        if *digit == '0' {
-            /* pass */
-        } else if *digit == '+' {
-            num += scale;
-        } else if *digit == '-' {
-            num -= scale;
-        } // else unknown character
+    for digit in csd[loc..].chars() {
+        match digit {
+            '0' => {}
+            '+' => num += scale,
+            '-' => num -= scale,
+            _ => panic!("Work with 0, +, -, . only"),
+        }
         scale /= 2.0;
     }
     num
@@ -219,32 +215,39 @@ pub fn to_decimal(csd: &str) -> f64 {
 /// assert_eq!(s2, String::from("0.-"));
 /// ```
 #[allow(dead_code)]
-pub fn to_csdfixed(mut num: f64, mut nnz: u32) -> String {
+pub fn to_csdfixed(num: f64, nnz: u32) -> String {
     if num == 0.0 {
-        return String::from("0");
+        return "0".to_string();
     }
     let absnum = num.abs();
-    let nn = (absnum * 1.5).log2().ceil() as i32;
-    let (mut rem, s) = if absnum < 1.0 { (0, "0") } else { (nn, "") };
-    let mut csd = String::from(s);
-    let mut p2n = (2.0_f64).powi(rem);
+    let (rem, csd) = if absnum < 1.0 {
+        (0, "0".to_string())
+    } else {
+        let rem = (absnum * 1.5).log2().ceil() as i32;
+        (rem, "".to_string())
+    };
+    let mut p2n = 2.0_f64.powi(rem);
+    let mut num = num;
+    let mut rem = rem;
+    let mut nnz = nnz;
+    let mut csd = csd;
     while rem > 0 || (nnz > 0 && num.abs() > 1e-100) {
         if rem == 0 {
-            csd.push('.');
+            csd += ".";
         }
-        rem -= 1;
         p2n /= 2.0;
+        rem -= 1;
         let det = 1.5 * num;
         if det > p2n {
-            csd.push('+');
+            csd += "+";
             num -= p2n;
             nnz -= 1;
         } else if det < -p2n {
-            csd.push('-');
+            csd += "-";
             num += p2n;
             nnz -= 1;
         } else {
-            csd.push('0');
+            csd += "0";
         }
         if nnz == 0 {
             num = 0.0;
