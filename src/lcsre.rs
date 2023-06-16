@@ -5,10 +5,8 @@
 /// ```
 /// use csd::lcsre::longest_repeated_substring;
 ///
-/// let chars: Vec<_> = String::from("+-00+-00+-00+-0").chars().collect();
-/// let s1 = longest_repeated_substring(&chars);
-///
-/// assert_eq!(s1, String::from("+-00+-0"));
+/// let chars: Vec<_> = "+-00+-00+-00+-0".to_string().chars().collect();
+/// assert_eq!(longest_repeated_substring(&chars), "+-00+-0".to_string());
 /// ```
 pub fn longest_repeated_substring(cstr: &[char]) -> String {
     let n = cstr.len();

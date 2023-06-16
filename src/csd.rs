@@ -7,11 +7,8 @@
 /// ```
 /// use csd::csd::highest_power_of_two_in;
 ///
-/// let s1 = highest_power_of_two_in(14);
-/// let s2 = highest_power_of_two_in(8);
-///
-/// assert_eq!(s1, 8);
-/// assert_eq!(s2, 8);
+/// assert_eq!(highest_power_of_two_in(14), 8);
+/// assert_eq!(highest_power_of_two_in(8), 8);
 /// ```
 #[inline]
 pub fn highest_power_of_two_in(mut x: u32) -> u32 {
@@ -34,11 +31,8 @@ pub fn highest_power_of_two_in(mut x: u32) -> u32 {
 /// ```
 /// use csd::csd::to_csd;
 ///
-/// let s1 = to_csd(28.5, 2);
-/// let s2 = to_csd(-0.5, 2);
-///
-/// assert_eq!(s1, String::from("+00-00.+0"));
-/// assert_eq!(s2, String::from("0.-0"));
+/// assert_eq!(to_csd(28.5, 2), "+00-00.+0".to_string());
+/// assert_eq!(to_csd(-0.5, 2), "0.-0".to_string());
 /// ```
 pub fn to_csd(num: f64, places: i32) -> String {
     if num == 0.0 {
@@ -87,9 +81,7 @@ pub fn to_csd(num: f64, places: i32) -> String {
 /// ```
 /// use csd::csd::to_csd_i;
 ///
-/// let s1 = to_csd_i(28);
-///
-/// assert_eq!(s1, String::from("+00-00"));
+/// assert_eq!(to_csd_i(28), "+00-00".to_string());
 /// ```
 #[allow(dead_code)]
 pub fn to_csd_i(num: i32) -> String {
@@ -123,15 +115,17 @@ pub fn to_csd_i(num: i32) -> String {
 /// - <https://sourceforge.net/projects/pycsd/>
 /// - License: GPL2
 ///
+/// # Panics
+///
+/// Panics if unexpected character is encountered
+///
 /// # Examples
 ///
 /// ```
 /// use csd::csd::to_decimal_i;
 ///
-/// let chars: Vec<_> = String::from("+00-00").chars().collect();
-/// let d1 = to_decimal_i(&chars);
-///
-/// assert_eq!(d1, 28);
+/// let chars: Vec<_> = "+00-00".to_string().chars().collect();
+/// assert_eq!(to_decimal_i(&chars), 28);
 /// ```
 #[allow(dead_code)]
 pub const fn to_decimal_i(csd: &[char]) -> i32 {
@@ -155,16 +149,17 @@ pub const fn to_decimal_i(csd: &[char]) -> i32 {
 /// - <https://sourceforge.net/projects/pycsd/>
 /// - License: GPL2
 ///
+/// # Panics
+///
+/// Panics if unexpected character is encountered
+///
 /// # Examples
 ///
 /// ```
 /// use csd::csd::to_decimal;
 ///
-/// let d1 = to_decimal(&String::from("+00-00.+"));
-/// let d2 = to_decimal(&String::from("0.-"));
-///
-/// assert_eq!(d1, 28.5);
-/// assert_eq!(d2, -0.5);
+/// assert_eq!(to_decimal("+00-00.+"), 28.5);
+/// assert_eq!(to_decimal("0.-"), -0.5);
 /// ```
 pub fn to_decimal(csd: &str) -> f64 {
     let mut num: f64 = 0.0;
@@ -211,8 +206,8 @@ pub fn to_decimal(csd: &str) -> f64 {
 /// let s1 = to_csdfixed(28.5, 4);
 /// let s2 = to_csdfixed(-0.5, 4);
 ///
-/// assert_eq!(s1, String::from("+00-00.+"));
-/// assert_eq!(s2, String::from("0.-"));
+/// assert_eq!(to_csdfixed(28.5, 4), "+00-00.+".to_string());
+/// assert_eq!(to_csdfixed(-0.5, 4), "0.-".to_string());
 /// ```
 #[allow(dead_code)]
 pub fn to_csdfixed(num: f64, nnz: u32) -> String {
@@ -305,3 +300,4 @@ mod tests {
         d == to_decimal_i(&chars)
     }
 }
+
