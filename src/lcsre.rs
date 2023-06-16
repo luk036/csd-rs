@@ -12,7 +12,7 @@ pub fn longest_repeated_substring(cstr: &[char]) -> String {
     let n = cstr.len();
     let mut lcsre = vec![vec![0; n + 1]; n + 1];
 
-    let mut res = String::from(""); // To store result
+    let mut res = "".to_string(); // To store result
     let mut res_length = 0; // To store length of result
 
     // building table in bottom-up manner
@@ -55,8 +55,8 @@ mod tests {
 
     #[test]
     fn test_lcsre() {
-        let cstr = String::from("+-00+-00+-00+-0");
+        let cstr = "+-00+-00+-00+-0".to_string();
         let res = longest_repeated_substring(&cstr.chars().collect::<Vec<char>>());
-        assert_eq!(res, String::from("+-00+-0"));
+        assert_eq!(res, "+-00+-0".to_string());
     }
 }
