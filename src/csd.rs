@@ -4,7 +4,7 @@
 ///
 /// The parameter `x` is an unsigned 32-bit integer.
 ///
-/// https://thecodingbot.com/find-the-greatest-power-of-2-less-than-or-equal-to-a-given-number/
+/// <https://thecodingbot.com/find-the-greatest-power-of-2-less-than-or-equal-to-a-given-number/>
 ///
 /// # Examples
 ///
