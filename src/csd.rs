@@ -1,10 +1,21 @@
 /// Find the highest power of two less than or equal to a given number
 ///
-/// The function calculates the highest power of two that is less than or equal to a given number.
+/// The `highest_power_of_two_in` function calculates the highest power of two that is less than or
+/// equal to a given number.
 ///
-/// The parameter `x` is an unsigned 32-bit integer.
+/// Reference:
+/// 
+/// * <https://thecodingbot.com/find-the-greatest-power-of-2-less-than-or-equal-to-a-given-number/>
 ///
-/// <https://thecodingbot.com/find-the-greatest-power-of-2-less-than-or-equal-to-a-given-number/>
+/// Arguments:
+/// 
+/// * `x`: The parameter `x` is an unsigned 32-bit integer. It represents the number for which we want
+/// to find the highest power of two that is less than or equal to it.
+/// 
+/// Returns:
+/// 
+/// The function `highest_power_of_two_in` returns the highest power of two that is less than or equal
+/// to the given number.
 ///
 /// # Examples
 ///
@@ -26,21 +37,25 @@ pub fn highest_power_of_two_in(mut x: u32) -> u32 {
 
 /// Convert to CSD (Canonical Signed Digit) String representation
 ///
-/// The function `to_csd` converts a given number to its Canonical Signed Digit (CSD) representation
+/// The `to_csd` function converts a given number to its Canonical Signed Digit (CSD) representation
 /// with a specified number of decimal places.
-///
-/// The `num` parameter is a double precision floating-point number that represents the value
-/// to be converted to CSD (Canonic Signed Digit) representation.
-/// The `places` parameter in the `to_csd` function represents the number of decimal
-/// places to include in the CSD (Canonical Signed Digit) representation of the given `num`.
-///
-/// The function `to_csd` returns a string representation of the given `num` in Canonical Signed
-/// Digit (CSD) format.
 /// 
 /// - Original author: Harnesser
 /// - <https://sourceforge.net/projects/pycsd/>
 /// - License: GPL2
 ///
+/// Arguments:
+/// 
+/// * `num`: The `num` parameter is a double precision floating-point number that represents the value
+/// to be converted to CSD (Canonical Signed Digit) representation.
+/// * `places`: The `places` parameter represents the number of decimal places to include in the CSD
+/// (Canonical Signed Digit) representation of the given `num`.
+/// 
+/// Returns:
+/// 
+/// The function `to_csd` returns a string representation of the given `num` in Canonical Signed Digit
+/// (CSD) format.
+/// 
 /// # Examples
 ///
 /// ```
@@ -87,16 +102,17 @@ pub fn to_csd(num: f64, places: i32) -> String {
 
 /// Convert to CSD (Canonical Signed Digit) String representation
 ///
-/// The function converts a given integer into a Canonical Signed Digit (CSD) representation.
-///
-/// The parameter `num` is an integer that represents the number for which we want to
-/// generate the CSD (Canonical Signed Digit) representation.
-///
-/// The function `to_csd_i` returns a string.
+/// The `to_csd_i` function converts an integer into a Canonical Signed Digit (CSD) representation.
 /// 
-/// - Original author: Harnesser
-/// - <https://sourceforge.net/projects/pycsd/>
-/// - License: GPL2
+/// Arguments:
+/// 
+/// * `num`: The `num` parameter is an integer that represents the number for which we want to generate
+/// the CSD (Canonical Signed Digit) representation.
+/// 
+/// Returns:
+/// 
+/// The function `to_csd_i` returns a string representation of the given integer in Canonical Signed
+/// Digit (CSD) format.
 ///
 /// # Examples
 ///
@@ -133,13 +149,17 @@ pub fn to_csd_i(num: i32) -> String {
 
 /// Convert the CSD (Canonical Signed Digit) to a decimal
 ///
-/// The function `to_decimal_i` takes a CSD (Canonical Signed Digit) string as
-/// input and converts it to an integer. It iterates through the characters of
-/// the string and performs the corresponding operations based on the character.
+/// The `to_decimal_i` function converts a CSD (Canonical Signed Digit) string to a decimal integer.
 /// 
-/// - Original author: Harnesser
-/// - <https://sourceforge.net/projects/pycsd/>
-/// - License: GPL2
+/// Arguments:
+/// 
+/// * `csd`: The `csd` parameter is a slice of characters representing a CSD (Canonical Signed Digit)
+/// string.
+/// 
+/// Returns:
+/// 
+/// The function `to_decimal_i` returns an `i32` value, which is the decimal representation of the input
+/// CSD (Canonical Signed Digit) string.
 ///
 /// # Panics
 ///
@@ -171,12 +191,16 @@ pub const fn to_decimal_i(csd: &[char]) -> i32 {
 
 /// Convert the CSD (Canonical Signed Digit) to a decimal
 ///
-/// The function `to_decimal` takes a CSD (Canonical Signed Digit)
-/// string as input and converts it to a decimal number using a match statement.
+/// The `to_decimal` function converts a CSD (Canonical Signed Digit) string to a decimal number.
 /// 
-/// - Original author: Harnesser
-/// - <https://sourceforge.net/projects/pycsd/>
-/// - License: GPL2
+/// Arguments:
+/// 
+/// * `csd`: The `csd` parameter is a string representing a Canonical Signed Digit (CSD) number.
+/// 
+/// Returns:
+/// 
+/// The function `to_decimal` returns a decimal number (f64) that is converted from the input CSD
+/// (Canonical Signed Digit) string.
 ///
 /// # Panics
 ///
@@ -223,21 +247,21 @@ pub fn to_decimal(csd: &str) -> f64 {
 
 /// Convert to CSD representation with fixed number of non-zero
 ///
-/// The function `to_csdfixed` converts a given number into a CSD (Canonic Signed Digit) representation
+/// The `to_csdfixed` function converts a given number into a CSD (Canonic Signed Digit) representation
 /// with a specified number of non-zero digits.
-///
-/// The parameter `num` is a double precision floating-point number that represents the input
-/// value for conversion to CSD (Canonic Signed Digit) fixed-point representation.
-/// The parameter `nnz` stands for "number of non-zero bits". It represents the maximum
-/// number of non-zero bits allowed in the output CSD (Canonical Signed Digit) representation of the
-/// given `num`.
-///
-/// The function `to_csdfixed` returns a string representation of the given `num` in Canonical
-/// Signed Digit (CSD) format.
 /// 
-/// - Original author: Harnesser
-/// - <https://sourceforge.net/projects/pycsd/>
-/// - License: GPL2
+/// Arguments:
+/// 
+/// * `num`: The `num` parameter is a double precision floating-point number that represents the input
+/// value for conversion to CSD (Canonic Signed Digit) fixed-point representation.
+/// * `nnz`: The parameter `nnz` stands for "number of non-zero bits". It represents the maximum number
+/// of non-zero bits allowed in the output CSD (Canonical Signed Digit) representation of the given
+/// `num`.
+/// 
+/// Returns:
+/// 
+/// The function `to_csdfixed` returns a string representation of the given `num` in Canonical Signed
+/// Digit (CSD) format.
 ///
 /// # Examples
 ///

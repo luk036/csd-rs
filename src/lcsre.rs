@@ -1,13 +1,17 @@
 /// Find the longest repeating non-overlapping substring in cstr
 ///
-/// The function `longest_repeated_substring` takes a string and its length as input and returns the
-/// longest repeated substring in the string.
-///
-/// The parameter `sv` is a reference to a character array, which represents the input string.
-/// It is assumed that the string is null-terminated.
-///
-/// @return The function `longest_repeated_substring` returns a string, which is the longest repeated
-/// substring in the given input string `sv`.
+/// The `longest_repeated_substring` function takes a null-terminated string and its length as input and
+/// returns the longest repeated non-overlapping substring in the string.
+/// 
+/// Arguments:
+/// 
+/// * `cstr`: A reference to a character array representing the input string. It is assumed that the
+/// string is null-terminated.
+/// 
+/// Returns:
+/// 
+/// The function `longest_repeated_substring` returns a string, which is the longest repeated substring
+/// in the given input string `cstr`.
 /// 
 /// # Examples
 ///
