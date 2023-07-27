@@ -4,16 +4,16 @@
 /// equal to a given number.
 ///
 /// Reference:
-/// 
+///
 /// * <https://thecodingbot.com/find-the-greatest-power-of-2-less-than-or-equal-to-a-given-number/>
 ///
 /// Arguments:
-/// 
+///
 /// * `x`: The parameter `x` is an unsigned 32-bit integer. It represents the number for which we want
 /// to find the highest power of two that is less than or equal to it.
-/// 
+///
 /// Returns:
-/// 
+///
 /// The function `highest_power_of_two_in` returns the highest power of two that is less than or equal
 /// to the given number.
 ///
@@ -24,6 +24,10 @@
 ///
 /// assert_eq!(highest_power_of_two_in(14), 8);
 /// assert_eq!(highest_power_of_two_in(8), 8);
+/// assert_eq!(highest_power_of_two_in(1), 1);
+/// assert_eq!(highest_power_of_two_in(0), 0);
+/// assert_eq!(highest_power_of_two_in(3), 2);
+/// assert_eq!(highest_power_of_two_in(2), 2);
 /// ```
 #[inline]
 pub fn highest_power_of_two_in(mut x: u32) -> u32 {
@@ -39,23 +43,23 @@ pub fn highest_power_of_two_in(mut x: u32) -> u32 {
 ///
 /// The `to_csd` function converts a given number to its Canonical Signed Digit (CSD) representation
 /// with a specified number of decimal places.
-/// 
+///
 /// - Original author: Harnesser
 /// - <https://sourceforge.net/projects/pycsd/>
 /// - License: GPL2
 ///
 /// Arguments:
-/// 
+///
 /// * `num`: The `num` parameter is a double precision floating-point number that represents the value
 /// to be converted to CSD (Canonical Signed Digit) representation.
 /// * `places`: The `places` parameter represents the number of decimal places to include in the CSD
 /// (Canonical Signed Digit) representation of the given `num`.
-/// 
+///
 /// Returns:
-/// 
+///
 /// The function `to_csd` returns a string representation of the given `num` in Canonical Signed Digit
 /// (CSD) format.
-/// 
+///
 /// # Examples
 ///
 /// ```
@@ -63,6 +67,9 @@ pub fn highest_power_of_two_in(mut x: u32) -> u32 {
 ///
 /// assert_eq!(to_csd(28.5, 2), "+00-00.+0".to_string());
 /// assert_eq!(to_csd(-0.5, 2), "0.-0".to_string());
+/// assert_eq!(to_csd(0.0, 2), "0".to_string());
+/// assert_eq!(to_csd(0.0, 0), "0".to_string());
+/// assert_eq!(to_csd(28.5, -1), "+00-0".to_string());
 /// ```
 pub fn to_csd(num: f64, places: i32) -> String {
     if num == 0.0 {
@@ -103,14 +110,14 @@ pub fn to_csd(num: f64, places: i32) -> String {
 /// Convert to CSD (Canonical Signed Digit) String representation
 ///
 /// The `to_csd_i` function converts an integer into a Canonical Signed Digit (CSD) representation.
-/// 
+///
 /// Arguments:
-/// 
+///
 /// * `num`: The `num` parameter is an integer that represents the number for which we want to generate
 /// the CSD (Canonical Signed Digit) representation.
-/// 
+///
 /// Returns:
-/// 
+///
 /// The function `to_csd_i` returns a string representation of the given integer in Canonical Signed
 /// Digit (CSD) format.
 ///
@@ -120,6 +127,8 @@ pub fn to_csd(num: f64, places: i32) -> String {
 /// use csd::csd::to_csd_i;
 ///
 /// assert_eq!(to_csd_i(28), "+00-00".to_string());
+/// assert_eq!(to_csd_i(-0), "0".to_string());
+/// assert_eq!(to_csd_i(0), "0".to_string());
 /// ```
 #[allow(dead_code)]
 pub fn to_csd_i(num: i32) -> String {
@@ -150,14 +159,14 @@ pub fn to_csd_i(num: i32) -> String {
 /// Convert the CSD (Canonical Signed Digit) to a decimal
 ///
 /// The `to_decimal_i` function converts a CSD (Canonical Signed Digit) string to a decimal integer.
-/// 
+///
 /// Arguments:
-/// 
+///
 /// * `csd`: The `csd` parameter is a slice of characters representing a CSD (Canonical Signed Digit)
 /// string.
-/// 
+///
 /// Returns:
-/// 
+///
 /// The function `to_decimal_i` returns an `i32` value, which is the decimal representation of the input
 /// CSD (Canonical Signed Digit) string.
 ///
@@ -172,6 +181,8 @@ pub fn to_csd_i(num: i32) -> String {
 ///
 /// let chars: Vec<_> = "+00-00".to_string().chars().collect();
 /// assert_eq!(to_decimal_i(&chars), 28);
+/// let chars: Vec<_> = "0".to_string().chars().collect();
+/// assert_eq!(to_decimal_i(&chars), 0);
 /// ```
 #[allow(dead_code)]
 pub const fn to_decimal_i(csd: &[char]) -> i32 {
@@ -192,13 +203,13 @@ pub const fn to_decimal_i(csd: &[char]) -> i32 {
 /// Convert the CSD (Canonical Signed Digit) to a decimal
 ///
 /// The `to_decimal` function converts a CSD (Canonical Signed Digit) string to a decimal number.
-/// 
+///
 /// Arguments:
-/// 
+///
 /// * `csd`: The `csd` parameter is a string representing a Canonical Signed Digit (CSD) number.
-/// 
+///
 /// Returns:
-/// 
+///
 /// The function `to_decimal` returns a decimal number (f64) that is converted from the input CSD
 /// (Canonical Signed Digit) string.
 ///
@@ -213,6 +224,12 @@ pub const fn to_decimal_i(csd: &[char]) -> i32 {
 ///
 /// assert_eq!(to_decimal("+00-00.+"), 28.5);
 /// assert_eq!(to_decimal("0.-"), -0.5);
+/// assert_eq!(to_decimal("0"), 0.0);
+/// assert_eq!(to_decimal("0.0"), 0.0);
+/// assert_eq!(to_decimal("0.+"), 0.5);
+/// assert_eq!(to_decimal("0.-"), -0.5);
+/// assert_eq!(to_decimal("0.++"), 0.75);
+/// assert_eq!(to_decimal("0.-+"), -0.25);
 /// ```
 pub fn to_decimal(csd: &str) -> f64 {
     let mut num: f64 = 0.0;
@@ -249,17 +266,17 @@ pub fn to_decimal(csd: &str) -> f64 {
 ///
 /// The `to_csdfixed` function converts a given number into a CSD (Canonic Signed Digit) representation
 /// with a specified number of non-zero digits.
-/// 
+///
 /// Arguments:
-/// 
+///
 /// * `num`: The `num` parameter is a double precision floating-point number that represents the input
 /// value for conversion to CSD (Canonic Signed Digit) fixed-point representation.
 /// * `nnz`: The parameter `nnz` stands for "number of non-zero bits". It represents the maximum number
 /// of non-zero bits allowed in the output CSD (Canonical Signed Digit) representation of the given
 /// `num`.
-/// 
+///
 /// Returns:
-/// 
+///
 /// The function `to_csdfixed` returns a string representation of the given `num` in Canonical Signed
 /// Digit (CSD) format.
 ///
@@ -272,6 +289,10 @@ pub fn to_decimal(csd: &str) -> f64 {
 /// let s2 = to_csdfixed(-0.5, 4);
 ///
 /// assert_eq!(to_csdfixed(28.5, 4), "+00-00.+".to_string());
+/// assert_eq!(to_csdfixed(-0.5, 4), "0.-".to_string());
+/// assert_eq!(to_csdfixed(0.0, 4), "0".to_string());
+/// assert_eq!(to_csdfixed(0.0, 0), "0".to_string());
+/// assert_eq!(to_csdfixed(0.5, 4), "0.+".to_string());
 /// assert_eq!(to_csdfixed(-0.5, 4), "0.-".to_string());
 /// ```
 #[allow(dead_code)]
@@ -365,4 +386,3 @@ mod tests {
         d == to_decimal_i(&chars)
     }
 }
-
