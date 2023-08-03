@@ -185,7 +185,7 @@ pub fn to_csd_i(num: i32) -> String {
 /// assert_eq!(to_decimal_i(&chars), 0);
 /// ```
 #[allow(dead_code)]
-pub const fn to_decimal_i(csd: &[char]) -> i32 {
+pub fn to_decimal_i(csd: &[char]) -> i32 {
     let mut num: i32 = 0;
     let mut remaining = csd;
     while let [digit, tail @ ..] = remaining {

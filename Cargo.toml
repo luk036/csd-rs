@@ -1,13 +1,13 @@
 [package]
-name = "csd-rs"      # the name of the package
-version = "0.1.0"    # the current version, obeying semver
+name = "csd-rs"
+version = "0.1.0"
 authors = ["Wai-Shing Luk <luk036@gmail.com>"]
 edition = "2021"
 description = "Canonical Signed Digit Conversion in Rust"
 readme = "README.md"
 homepage = "https://luk036.github.io/csd-rs/"
-repository = "https://github.com/luk036/csd-rs/"
-license = "MIT"
+repository = "https://github.com/luk036/csd-rs"
+license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
