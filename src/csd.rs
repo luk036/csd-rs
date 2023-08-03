@@ -358,8 +358,8 @@ mod tests {
 
     #[test]
     fn test_to_decimal() {
-        let d1 = to_decimal(&"+00-00.+".to_string());
-        let d2 = to_decimal(&"0.-".to_string());
+        let d1 = to_decimal("+00-00.+");
+        let d2 = to_decimal("0.-");
         assert_eq!(d1, 28.5);
         assert_eq!(d2, -0.5);
     }
