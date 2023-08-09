@@ -23,6 +23,7 @@
 /// let chars: Vec<_> = "abcdefgh".to_string().chars().collect();
 /// assert_eq!(longest_repeated_substring(&chars), "".to_string());
 /// ```
+#[allow(dead_code)]
 pub fn longest_repeated_substring(cstr: &[char]) -> String {
     let n = cstr.len();
     let mut lcsre = vec![vec![0; n + 1]; n + 1];
