@@ -13,6 +13,7 @@
 // mod lib;
 // use crate::lib::{to_csd, to_csdfixed, to_decimal};
 mod csd;
+mod lcsre;
 use crate::csd::{to_csd, to_csdfixed, to_decimal};
 
 // extern crate structopt;
