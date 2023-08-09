@@ -20,6 +20,8 @@
 ///
 /// let chars: Vec<_> = "+-00+-00+-00+-0".to_string().chars().collect();
 /// assert_eq!(longest_repeated_substring(&chars), "+-00+-0".to_string());
+/// let chars: Vec<_> = "abcdefgh".to_string().chars().collect();
+/// assert_eq!(longest_repeated_substring(&chars), "".to_string());
 /// ```
 pub fn longest_repeated_substring(cstr: &[char]) -> String {
     let n = cstr.len();
@@ -71,5 +73,8 @@ mod tests {
         let cstr = "+-00+-00+-00+-0".to_string();
         let res = longest_repeated_substring(&cstr.chars().collect::<Vec<char>>());
         assert_eq!(res, "+-00+-0".to_string());
+        let cstr = "abcdefgh".to_string();
+        let res = longest_repeated_substring(&cstr.chars().collect::<Vec<char>>());
+        assert_eq!(res, "".to_string());
     }
 }

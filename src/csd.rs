@@ -294,6 +294,8 @@ pub fn to_decimal(csd: &str) -> f64 {
 /// assert_eq!(to_csdfixed(0.0, 0), "0".to_string());
 /// assert_eq!(to_csdfixed(0.5, 4), "0.+".to_string());
 /// assert_eq!(to_csdfixed(-0.5, 4), "0.-".to_string());
+/// assert_eq!(to_csdfixed(28.5, 2), "+00-00".to_string());
+/// assert_eq!(to_csdfixed(28.5, 1), "+00000".to_string());
 /// ```
 #[allow(dead_code)]
 pub fn to_csdfixed(num: f64, nnz: u32) -> String {
@@ -374,8 +376,8 @@ mod tests {
 
     #[quickcheck]
     fn test_csd(d: i32) -> bool {
-        let f = d as f64;
-        f == to_decimal(&to_csd(f, 2))
+        let f = d as f64 / 8.0;
+        f == to_decimal(&to_csd(f, 4))
     }
 
     #[quickcheck]
