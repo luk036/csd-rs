@@ -76,7 +76,7 @@ pub fn to_csd(num: f64, places: i32) -> String {
         return "0".to_string();
     }
     let absnum = num.abs();
-    let (rem, csd) = if absnum < 1.0 {
+    let (mut rem, mut csd) = if absnum < 1.0 {
         (0, "0".to_string())
     } else {
         let rem = (absnum * 1.5).log2().ceil() as i32;
@@ -84,8 +84,6 @@ pub fn to_csd(num: f64, places: i32) -> String {
     };
     let mut p2n = 2.0_f64.powi(rem);
     let mut num = num;
-    let mut rem = rem;
-    let mut csd = csd;
 
     while rem > -places {
         if rem == 0 {
@@ -255,17 +253,17 @@ pub fn to_decimal(csd: &str) -> f64 {
             '0' => {}
             '+' => num += scale,
             '-' => num -= scale,
-            _ => panic!("Work with 0, +, -, . only"),
+            _ => panic!("Fractional part works with 0, +, - only"),
         }
         scale /= 2.0;
     }
     num
 }
 
-/// Convert to CSD representation with fixed number of non-zero
+/// Convert to CSD representation approximately with fixed number of non-zero
 ///
 /// The `to_csdfixed` function converts a given number into a CSD (Canonic Signed Digit) representation
-/// with a specified number of non-zero digits.
+/// approximately with a specified number of non-zero digits.
 ///
 /// Arguments:
 ///
@@ -303,7 +301,7 @@ pub fn to_csdfixed(num: f64, nnz: u32) -> String {
         return "0".to_string();
     }
     let absnum = num.abs();
-    let (rem, csd) = if absnum < 1.0 {
+    let (mut rem, mut csd) = if absnum < 1.0 {
         (0, "0".to_string())
     } else {
         let rem = (absnum * 1.5).log2().ceil() as i32;
@@ -311,9 +309,7 @@ pub fn to_csdfixed(num: f64, nnz: u32) -> String {
     };
     let mut p2n = 2.0_f64.powi(rem);
     let mut num = num;
-    let mut rem = rem;
     let mut nnz = nnz;
-    let mut csd = csd;
     while rem > 0 || (nnz > 0 && num.abs() > 1e-100) {
         if rem == 0 {
             csd += ".";
