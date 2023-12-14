@@ -67,14 +67,14 @@ pub fn highest_power_of_two_in(mut x: u32) -> u32 {
 ///
 /// assert_eq!(to_csd(28.5, 2), "+00-00.+0".to_string());
 /// assert_eq!(to_csd(-0.5, 2), "0.-0".to_string());
-/// assert_eq!(to_csd(0.0, 2), "0".to_string());
+/// assert_eq!(to_csd(0.0, 2), "0.00".to_string());
 /// assert_eq!(to_csd(0.0, 0), "0".to_string());
 /// assert_eq!(to_csd(28.5, -1), "+00-0".to_string());
 /// ```
 pub fn to_csd(num: f64, places: i32) -> String {
-    if num == 0.0 {
-        return "0".to_string();
-    }
+    // if num == 0.0 {
+    //     return "0".to_string();
+    // }
     let absnum = num.abs();
     let (mut rem, mut csd) = if absnum < 1.0 {
         (0, "0".to_string())
@@ -297,9 +297,9 @@ pub fn to_decimal(csd: &str) -> f64 {
 /// ```
 #[allow(dead_code)]
 pub fn to_csdfixed(num: f64, nnz: u32) -> String {
-    if num == 0.0 {
-        return "0".to_string();
-    }
+    // if num == 0.0 {
+    //     return "0".to_string();
+    // }
     let absnum = num.abs();
     let (mut rem, mut csd) = if absnum < 1.0 {
         (0, "0".to_string())
@@ -350,7 +350,7 @@ mod tests {
     fn test_to_csd() {
         assert_eq!(to_csd(28.5, 2), "+00-00.+0".to_string());
         assert_eq!(to_csd(-0.5, 2), "0.-0".to_string());
-        assert_eq!(to_csd(0.0, 2), "0".to_string());
+        assert_eq!(to_csd(0.0, 2), "0.00".to_string());
         assert_eq!(to_csd(0.0, 0), "0".to_string());
         assert_eq!(to_csd(28.5, -1), "+00-0".to_string());
     }
