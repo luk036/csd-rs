@@ -13,6 +13,11 @@
   [this](https://www.rust-lang.org/tools/install) guide.
 * run `cargo install csd-rs`
 
+## 👀 See also
+
+* [csdigit](https://luk036.github.io/csdigit)
+* [csd-cpp](https://luk036.github.io/csd-cpp)
+
 ## License
 
 Licensed under either of
