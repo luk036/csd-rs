@@ -72,9 +72,6 @@ pub fn highest_power_of_two_in(mut x: u32) -> u32 {
 /// assert_eq!(to_csd(28.5, -1), "+00-0".to_string());
 /// ```
 pub fn to_csd(num: f64, places: i32) -> String {
-    // if num == 0.0 {
-    //     return "0".to_string();
-    // }
     let absnum = num.abs();
     let (mut rem, mut csd) = if absnum < 1.0 {
         (0, "0".to_string())
@@ -198,6 +195,37 @@ pub const fn to_decimal_i(csd: &[char]) -> i32 {
     num
 }
 
+pub fn to_decimal_integral(csd: &str) -> (i32, usize) {
+    let mut num: i32 = 0;
+    for (pos, digit) in csd.chars().enumerate() {
+        match digit {
+            '0' => num *= 2,
+            '+' => num = num * 2 + 1,
+            '-' => num = num * 2 - 1,
+            '.' => {
+                return (num, pos + 1);
+            }
+            _ => panic!("Work with 0, +, -, . only"),
+        }
+    }
+    (num, 0)
+}
+
+pub fn to_decimal_fractional(csd: &str) -> f64 {
+    let mut scale = 0.5;
+    let mut num = 0.0;
+    for digit in csd.chars() {
+        match digit {
+            '0' => {}
+            '+' => num += scale,
+            '-' => num -= scale,
+            _ => panic!("Fractional part works with 0, +, - only"),
+        }
+        scale /= 2.0;
+    }
+    num
+}
+
 /// Convert the CSD (Canonical Signed Digit) to a decimal
 ///
 /// The `to_decimal` function converts a CSD (Canonical Signed Digit) string to a decimal number.
@@ -230,34 +258,12 @@ pub const fn to_decimal_i(csd: &[char]) -> i32 {
 /// assert_eq!(to_decimal("0.-+"), -0.25);
 /// ```
 pub fn to_decimal(csd: &str) -> f64 {
-    let mut num: f64 = 0.0;
-    let mut loc: usize = 0;
-    for (pos, digit) in csd.chars().enumerate() {
-        match digit {
-            '0' => num *= 2.0,
-            '+' => num = num * 2.0 + 1.0,
-            '-' => num = num * 2.0 - 1.0,
-            '.' => {
-                loc = pos + 1;
-                break;
-            }
-            _ => panic!("Work with 0, +, -, . only"),
-        }
-    }
+    let (integral, loc) = to_decimal_integral(csd);
     if loc == 0 {
-        return num;
+        return integral as f64;
     }
-    let mut scale = 0.5;
-    for digit in csd[loc..].chars() {
-        match digit {
-            '0' => {}
-            '+' => num += scale,
-            '-' => num -= scale,
-            _ => panic!("Fractional part works with 0, +, - only"),
-        }
-        scale /= 2.0;
-    }
-    num
+    let fractional = to_decimal_fractional(&csd[loc..]);
+    integral as f64 + fractional
 }
 
 /// Convert to CSD representation approximately with fixed number of non-zero
