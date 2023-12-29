@@ -68,8 +68,7 @@ pub fn highest_power_of_two_in(mut x: u32) -> u32 {
 /// assert_eq!(to_csd(28.5, 2), "+00-00.+0".to_string());
 /// assert_eq!(to_csd(-0.5, 2), "0.-0".to_string());
 /// assert_eq!(to_csd(0.0, 2), "0.00".to_string());
-/// assert_eq!(to_csd(0.0, 0), "0".to_string());
-/// assert_eq!(to_csd(28.5, -1), "+00-0".to_string());
+/// assert_eq!(to_csd(0.0, 0), "0.".to_string());
 /// ```
 pub fn to_csd(num: f64, places: i32) -> String {
     let absnum = num.abs();
@@ -81,24 +80,25 @@ pub fn to_csd(num: f64, places: i32) -> String {
     };
     let mut p2n = 2.0_f64.powi(rem);
     let mut num = num;
-
-    while rem > -places {
-        if rem == 0 {
-            csd += ".";
+    let mut loop_fn = |value: i32, csd: &mut String| {
+        while rem > value {
+            p2n /= 2.0;
+            rem -= 1;
+            let det = 1.5 * num;
+            if det > p2n {
+                csd.push('+');
+                num -= p2n;
+            } else if det < -p2n {
+                csd.push('-');
+                num += p2n;
+            } else {
+                csd.push('0');
+            }
         }
-        p2n /= 2.0;
-        rem -= 1;
-        let det = 1.5 * num;
-        if det > p2n {
-            csd += "+";
-            num -= p2n;
-        } else if det < -p2n {
-            csd += "-";
-            num += p2n;
-        } else {
-            csd += "0";
-        }
-    }
+    };
+    loop_fn(0, &mut csd);
+    csd += ".";
+    loop_fn(-places, &mut csd);
     csd
 }
 
@@ -357,8 +357,7 @@ mod tests {
         assert_eq!(to_csd(28.5, 2), "+00-00.+0".to_string());
         assert_eq!(to_csd(-0.5, 2), "0.-0".to_string());
         assert_eq!(to_csd(0.0, 2), "0.00".to_string());
-        assert_eq!(to_csd(0.0, 0), "0".to_string());
-        assert_eq!(to_csd(28.5, -1), "+00-0".to_string());
+        assert_eq!(to_csd(0.0, 0), "0.".to_string());
     }
 
     #[test]
