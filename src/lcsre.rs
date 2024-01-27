@@ -52,7 +52,7 @@ pub fn longest_repeated_substring(cs: &str) -> String {
 
     // If we have a non-empty result, return the substring
     if res_length > 0 {
-        let slice = &cs[start as usize..start + res_length as usize];
+        let slice = &cs[start..start + res_length as usize];
         res = String::from(slice);
     }
 
