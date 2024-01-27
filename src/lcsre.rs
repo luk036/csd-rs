@@ -36,7 +36,8 @@ pub fn longest_repeated_substring(cs: &str) -> String {
     for i in 1..ndim {
         for j in i..ndim {
             if cs.as_bytes()[i - 1] == cs.as_bytes()[j - 1]
-                && lcsr[i - 1][j - 1] < (j as isize - i as isize) {
+                && lcsr[i - 1][j - 1] < (j as isize - i as isize)
+            {
                 lcsr[i][j] = lcsr[i - 1][j - 1] + 1;
 
                 if lcsr[i][j] > res_length {
@@ -57,7 +58,6 @@ pub fn longest_repeated_substring(cs: &str) -> String {
 
     res
 }
-
 
 #[cfg(test)]
 mod tests {
