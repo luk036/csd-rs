@@ -18,52 +18,46 @@
 /// ```
 /// use csd::lcsre::longest_repeated_substring;
 ///
-/// let chars: Vec<_> = "+-00+-00+-00+-0".to_string().chars().collect();
-/// assert_eq!(longest_repeated_substring(&chars), "+-00+-0".to_string());
-/// let chars: Vec<_> = "abcdefgh".to_string().chars().collect();
-/// assert_eq!(longest_repeated_substring(&chars), "".to_string());
+/// let cs = "+-00+-00+-00+-0";
+/// assert_eq!(longest_repeated_substring(&cs), "+-00+-0");
+/// let cs = "abcdefgh";
+/// assert_eq!(longest_repeated_substring(&cs), "");
 /// ```
 #[allow(dead_code)]
-pub fn longest_repeated_substring(cstr: &[char]) -> String {
-    let n = cstr.len();
-    let mut lcsre = vec![vec![0; n + 1]; n + 1];
+pub fn longest_repeated_substring(cs: &str) -> String {
+    let ndim = cs.len() + 1;
+    let mut lcsr = vec![vec![0; ndim]; ndim];
 
-    let mut res = "".to_string(); // To store result
-    let mut res_length = 0; // To store length of result
+    let mut res = String::new();
+    let mut res_length = 0;
+    let mut start = 0;
 
-    // building table in bottom-up manner
-    let mut index = 0;
-    for i in 1..(n + 1) {
-        for j in (i + 1)..(n + 1) {
-            // (j-i) > lcsre[i-1][j-1] to remove
-            // overlapping
-            if cstr[i - 1] == cstr[j - 1] && lcsre[i - 1][j - 1] < (j - i) {
-                lcsre[i][j] = lcsre[i - 1][j - 1] + 1;
+    // Build the LCSR table in bottom-up manner
+    for i in 1..ndim {
+        for j in i..ndim {
+            if cs.as_bytes()[i - 1] == cs.as_bytes()[j - 1]
+                && lcsr[i - 1][j - 1] < (j as isize - i as isize) {
+                lcsr[i][j] = lcsr[i - 1][j - 1] + 1;
 
-                // updating maximum length of the
-                // substring and updating the finishing
-                // index of the suffix
-                if lcsre[i][j] > res_length {
-                    res_length = lcsre[i][j];
-                    index = std::cmp::max(i, index);
+                if lcsr[i][j] > res_length {
+                    res_length = lcsr[i][j];
+                    start = std::cmp::min(i, start);
                 }
             } else {
-                lcsre[i][j] = 0;
+                lcsr[i][j] = 0;
             }
         }
     }
 
-    // If we have non-empty result, then insert
-    // all characters from first character to
-    // last character of string
+    // If we have a non-empty result, return the substring
     if res_length > 0 {
-        for i in (index - res_length + 1)..(index + 1) {
-            res.push(cstr[i - 1]);
-        }
+        let slice = &cs[start as usize..start + res_length as usize];
+        res = String::from(slice);
     }
 
     res
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -71,11 +65,11 @@ mod tests {
 
     #[test]
     fn test_lcsre() {
-        let cstr = "+-00+-00+-00+-0".to_string();
-        let res = longest_repeated_substring(&cstr.chars().collect::<Vec<char>>());
-        assert_eq!(res, "+-00+-0".to_string());
-        let cstr = "abcdefgh".to_string();
-        let res = longest_repeated_substring(&cstr.chars().collect::<Vec<char>>());
-        assert_eq!(res, "".to_string());
+        let cstr = "+-00+-00+-00+-0";
+        let res = longest_repeated_substring(&cstr);
+        assert_eq!(res, "+-00+-0");
+        let cstr = "abcdefgh";
+        let res = longest_repeated_substring(&cstr);
+        assert_eq!(res, "");
     }
 }
