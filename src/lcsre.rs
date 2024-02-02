@@ -66,10 +66,10 @@ mod tests {
     #[test]
     fn test_lcsre() {
         let cstr = "+-00+-00+-00+-0";
-        let res = longest_repeated_substring(&cstr);
+        let res = longest_repeated_substring(cstr);
         assert_eq!(res, "+-00+-0");
         let cstr = "abcdefgh";
-        let res = longest_repeated_substring(&cstr);
+        let res = longest_repeated_substring(cstr);
         assert_eq!(res, "");
     }
 }
