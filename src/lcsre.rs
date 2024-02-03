@@ -26,26 +26,26 @@
 #[allow(dead_code)]
 pub fn longest_repeated_substring(cs: &str) -> String {
     let ndim = cs.len() + 1;
-    let mut lcsr = vec![vec![0; ndim]; ndim];
+    let mut lcs_re = vec![vec![0; ndim]; ndim];
 
     let mut res = String::new();
     let mut res_length = 0;
     let mut start = 0;
 
-    // Build the LCSR table in bottom-up manner
+    // Build the lcs_re table in bottom-up manner
     for i in 1..ndim {
         for j in i..ndim {
             if cs.as_bytes()[i - 1] == cs.as_bytes()[j - 1]
-                && lcsr[i - 1][j - 1] < (j as isize - i as isize)
+                && lcs_re[i - 1][j - 1] < (j as isize - i as isize)
             {
-                lcsr[i][j] = lcsr[i - 1][j - 1] + 1;
+                lcs_re[i][j] = lcs_re[i - 1][j - 1] + 1;
 
-                if lcsr[i][j] > res_length {
-                    res_length = lcsr[i][j];
+                if lcs_re[i][j] > res_length {
+                    res_length = lcs_re[i][j];
                     start = std::cmp::min(i, start);
                 }
             } else {
-                lcsr[i][j] = 0;
+                lcs_re[i][j] = 0;
             }
         }
     }
