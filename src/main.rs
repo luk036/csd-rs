@@ -14,68 +14,140 @@
 // use crate::lib::{to_csd, to_csdfixed, to_decimal};
 mod csd;
 mod lcsre;
+
+use std::env;
+use std::f64;
+use std::str::FromStr;
+use log::{info, debug};
 use crate::csd::{to_csd, to_csdfixed, to_decimal};
 
-// extern crate structopt;
+fn parse_args(args: &[String]) -> Result<Args, &'static str> {
+    let mut decimal = f64::INFINITY;
+    let mut decimal2 = f64::INFINITY;
+    let mut csdstr = String::new();
+    let mut nnz = 3;
+    let mut places = 4;
+    // let mut loglevel = log::LevelFilter::Off;
 
-use structopt::StructOpt;
+    let mut i = 0;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--version" => {
+                println!("csd {}", env!("CARGO_PKG_VERSION"));
+                return Err("");
+            }
+            "-c" | "--to_csd" => {
+                decimal = f64::from_str(&args[i + 1]).unwrap();
+                i += 2;
+            }
+            "-p" | "--places" => {
+                places = i32::from_str(&args[i + 1]).unwrap();
+                i += 2;
+            }
+            "-f" | "--to_csdfixed" => {
+                decimal2 = f64::from_str(&args[i + 1]).unwrap();
+                i += 2;
+            }
+            "-z" | "--nnz" => {
+                nnz = u32::from_str(&args[i + 1]).unwrap();
+                i += 2;
+            }
+            "-d" | "--to_decimal" => {
+                csdstr = args[i + 1].clone();
+                i += 2;
+            }
+            // "-v" | "--verbose" => {
+            //     loglevel = log::LevelFilter::Info;
+            //     i += 1;
+            // }
+            _ => i += 1,
+        }
+    }
 
-#[derive(StructOpt)]
-struct Options {
-    #[structopt(short = "c", long = "to_csd")]
-    /// Convert a decimal, e.g. 56.3, to CSD string up to p places.
-    decimal: Option<f64>,
+    Ok(Args {
+        decimal,
+        decimal2,
+        places,
+        nnz,
+        csdstr,
+        // loglevel,
+    })
+}
 
-    #[structopt(short = "p", long = "places", default_value = "4")]
-    /// How many places
+// fn setup_logging(loglevel: log::LevelFilter) {
+//     env::set_var("RUST_LOG", "csdigit=debug");
+//     env_logger::builder()
+//         .format_timestamp(Some("%Y-%m-%d %H:%M:%S"))
+//         .format(|buf, record| {
+//             writeln!(
+//                 buf,
+//                 "[{}] {}: {}",
+//                 buf.timestamp(),
+//                 record.level(),
+//                 record.args()
+//             )
+//         })
+//         .filter(None, loglevel)
+//         .init();
+// }
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    let args = parse_args(&args[1..]).unwrap();
+    // setup_logging(args.loglevel);
+    debug!("Starting crazy calculations...");
+
+    if args.decimal != f64::INFINITY {
+        let ans = to_csd(args.decimal, args.places);
+        println!("{}", ans);
+    }
+    if args.decimal2 != f64::INFINITY {
+        let ans = to_csdfixed(args.decimal2, args.nnz);
+        println!("{}", ans);
+    }
+    if !args.csdstr.is_empty() {
+        let ans = to_decimal(&args.csdstr);
+        println!("{}", ans);
+    }
+
+    info!("Script ends here");
+}
+
+struct Args {
+    decimal: f64,
+    decimal2: f64,
     places: i32,
-
-    #[structopt(short = "d", long = "to_decimal")]
-    /// Convert a number in CSD format, e.g. "+0-0.0-+", to a decimal
-    csd: Option<String>,
-
-    #[structopt(short = "f", long = "to_csdfixed")]
-    /// Convert a decimal, e.g. 56.3, to CSD string up to z non-zeros
-    decimal2: Option<f64>,
-
-    #[structopt(short = "z", long = "nnz", default_value = "4")]
-    /// Number of non-zeros
     nnz: u32,
+    csdstr: String,
+    // loglevel: log::LevelFilter,
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let options = Options::from_args();
-    // let message = std::env::args().nth(1)
-    //     .expect("Missing the message. Usage: catsay < message>");
+// fn run() {
+//     main();
+// }
 
-    match &options.csd {
-        Some(number) => {
-            println!("The ans is {}", to_decimal(number));
-        }
-        None => {
-            // ... print the cat as before
-            // println!("Please input a number");
-        }
-    }
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    match &options.decimal {
-        Some(number) => {
-            println!("The ans is {}", to_csd(*number, options.places));
-        }
-        None => {
-            // ... print the cat as before
-            // println!("Please input a number");
-        }
+    #[test]
+    fn test_parse_args() {
+        let args = vec![
+            String::from("-c"),
+            String::from("3.14"),
+            String::from("-p"),
+            String::from("2"),
+            String::from("-v"),
+        ];
+        let result = parse_args(&args);
+        assert_eq!(result.is_ok(), true);
+        let args = result.unwrap();
+        assert_eq!(args.decimal, 3.14);
+        assert_eq!(args.decimal2, f64::INFINITY);
+        assert_eq!(args.places, 2);
+        assert_eq!(args.csdstr, String::new());
+        // assert_eq!(args.loglevel, log::LevelFilter::Info);
     }
-
-    match &options.decimal2 {
-        Some(number) => {
-            println!("The ans is {}", to_csdfixed(*number, options.nnz));
-        }
-        None => {
-            // ... print the cat as before
-            // println!("Please input a number");
-        }
-    }
-    Ok(())
 }
+
+

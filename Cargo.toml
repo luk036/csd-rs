@@ -16,8 +16,9 @@ name = "csd"
 path = "src/lib.rs"
 
 [dependencies]
+log = "0.4.21"
 # rand = "0.5.5"
-structopt = "0.3.26"
+# structopt = "0.3.26"
 
 [dev-dependencies]
 quickcheck = "1"
