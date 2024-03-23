@@ -15,139 +15,59 @@
 mod csd;
 mod lcsre;
 
-use std::env;
-use std::f64;
-use std::str::FromStr;
-use log::{info, debug};
 use crate::csd::{to_csd, to_csdfixed, to_decimal};
+use argparse::{ArgumentParser, StoreTrue, Store, Print};
 
-fn parse_args(args: &[String]) -> Result<Args, &'static str> {
+fn main() {
+    let mut verbose = false;
     let mut decimal = f64::INFINITY;
     let mut decimal2 = f64::INFINITY;
     let mut csdstr = String::new();
     let mut nnz = 3;
     let mut places = 4;
-    // let mut loglevel = log::LevelFilter::Off;
-
-    let mut i = 0;
-    while i < args.len() {
-        match args[i].as_str() {
-            "--version" => {
-                println!("csd {}", env!("CARGO_PKG_VERSION"));
-                return Err("");
-            }
-            "-c" | "--to_csd" => {
-                decimal = f64::from_str(&args[i + 1]).unwrap();
-                i += 2;
-            }
-            "-p" | "--places" => {
-                places = i32::from_str(&args[i + 1]).unwrap();
-                i += 2;
-            }
-            "-f" | "--to_csdfixed" => {
-                decimal2 = f64::from_str(&args[i + 1]).unwrap();
-                i += 2;
-            }
-            "-z" | "--nnz" => {
-                nnz = u32::from_str(&args[i + 1]).unwrap();
-                i += 2;
-            }
-            "-d" | "--to_decimal" => {
-                csdstr = args[i + 1].clone();
-                i += 2;
-            }
-            // "-v" | "--verbose" => {
-            //     loglevel = log::LevelFilter::Info;
-            //     i += 1;
-            // }
-            _ => i += 1,
-        }
+    {  // this block limits scope of borrows by ap.refer() method
+        let mut ap = ArgumentParser::new();
+        ap.set_description("Canonical Signed Digit (CSD) Conversion.");
+        ap.refer(&mut verbose)
+            .add_option(&["-v", "--verbose"], StoreTrue,
+            "Be verbose");
+        ap.refer(&mut csdstr)
+            .add_option(&["-d", "--to_decimal"], Store,
+            "Convert to decimal");
+        ap.refer(&mut decimal)
+            .add_option(&["-c", "--to_csd"], Store,
+            "Convert to CSD with places (default is 4)");
+        ap.refer(&mut places)
+            .add_option(&["-p", "--places"], Store,
+            "Specify the places");
+        ap.refer(&mut nnz)
+            .add_option(&["-z", "--nnz"], Store,
+            "Specify the number of non-zeros");
+        ap.refer(&mut decimal2)
+            .add_option(&["-f", "--to_csdfixed"], Store,
+            "Convert to CSD with fixed number of non-zeros (default is 3)");
+        ap.add_option(&["-V", "--version"], Print(env!("CARGO_PKG_VERSION").to_string()), "Show version");
+        ap.parse_args_or_exit();
     }
 
-    Ok(Args {
-        decimal,
-        decimal2,
-        places,
-        nnz,
-        csdstr,
-        // loglevel,
-    })
-}
+    if verbose {
+        println!("Starting crazy calculations...");
+    }
 
-// fn setup_logging(loglevel: log::LevelFilter) {
-//     env::set_var("RUST_LOG", "csdigit=debug");
-//     env_logger::builder()
-//         .format_timestamp(Some("%Y-%m-%d %H:%M:%S"))
-//         .format(|buf, record| {
-//             writeln!(
-//                 buf,
-//                 "[{}] {}: {}",
-//                 buf.timestamp(),
-//                 record.level(),
-//                 record.args()
-//             )
-//         })
-//         .filter(None, loglevel)
-//         .init();
-// }
-
-fn main() {
-    let args: Vec<String> = env::args().collect();
-    let args = parse_args(&args[1..]).unwrap();
-    // setup_logging(args.loglevel);
-    debug!("Starting crazy calculations...");
-
-    if args.decimal != f64::INFINITY {
-        let ans = to_csd(args.decimal, args.places);
+    if decimal != f64::INFINITY {
+        let ans = to_csd(decimal, places);
         println!("{}", ans);
     }
-    if args.decimal2 != f64::INFINITY {
-        let ans = to_csdfixed(args.decimal2, args.nnz);
+    if decimal2 != f64::INFINITY {
+        let ans = to_csdfixed(decimal2, nnz);
         println!("{}", ans);
     }
-    if !args.csdstr.is_empty() {
-        let ans = to_decimal(&args.csdstr);
+    if !csdstr.is_empty() {
+        let ans = to_decimal(&csdstr);
         println!("{}", ans);
     }
 
-    info!("Script ends here");
-}
-
-struct Args {
-    decimal: f64,
-    decimal2: f64,
-    places: i32,
-    nnz: u32,
-    csdstr: String,
-    // loglevel: log::LevelFilter,
-}
-
-// fn run() {
-//     main();
-// }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse_args() {
-        let args = vec![
-            String::from("-c"),
-            String::from("3.14"),
-            String::from("-p"),
-            String::from("2"),
-            String::from("-v"),
-        ];
-        let result = parse_args(&args);
-        assert_eq!(result.is_ok(), true);
-        let args = result.unwrap();
-        assert_eq!(args.decimal, 3.14);
-        assert_eq!(args.decimal2, f64::INFINITY);
-        assert_eq!(args.places, 2);
-        assert_eq!(args.csdstr, String::new());
-        // assert_eq!(args.loglevel, log::LevelFilter::Info);
+    if verbose {
+        println!("Script ends here");
     }
 }
-
-
