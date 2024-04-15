@@ -50,14 +50,14 @@ pub fn highest_power_of_two_in(mut x: u32) -> u32 {
 ///
 /// Arguments:
 ///
-/// * `num`: The `num` parameter is a double precision floating-point number that represents the value
+/// * `decimal_value`: The `decimal_value` parameter is a double precision floating-point number that represents the value
 /// to be converted to CSD (Canonical Signed Digit) representation.
 /// * `places`: The `places` parameter represents the number of decimal places to include in the CSD
-/// (Canonical Signed Digit) representation of the given `num`.
+/// (Canonical Signed Digit) representation of the given `decimal_value`.
 ///
 /// Returns:
 ///
-/// The function `to_csd` returns a string representation of the given `num` in Canonical Signed Digit
+/// The function `to_csd` returns a string representation of the given `decimal_value` in Canonical Signed Digit
 /// (CSD) format.
 ///
 /// # Examples
@@ -70,8 +70,8 @@ pub fn highest_power_of_two_in(mut x: u32) -> u32 {
 /// assert_eq!(to_csd(0.0, 2), "0.00".to_string());
 /// assert_eq!(to_csd(0.0, 0), "0.".to_string());
 /// ```
-pub fn to_csd(num: f64, places: i32) -> String {
-    let absnum = num.abs();
+pub fn to_csd(decimal_value: f64, places: i32) -> String {
+    let absnum = decimal_value.abs();
     let (mut rem, mut csd) = if absnum < 1.0 {
         (0, "0".to_string())
     } else {
@@ -79,26 +79,27 @@ pub fn to_csd(num: f64, places: i32) -> String {
         (rem, "".to_string())
     };
     let mut p2n = 2.0_f64.powi(rem);
-    let mut num = num;
+    let mut decimal_value = decimal_value;
     let mut loop_fn = |value: i32, csd: &mut String| {
         while rem > value {
-            p2n /= 2.0;
             rem -= 1;
-            let det = 1.5 * num;
+            p2n /= 2.0;
+            let det = 1.5 * decimal_value;
             if det > p2n {
                 csd.push('+');
-                num -= p2n;
+                decimal_value -= p2n;
             } else if det < -p2n {
                 csd.push('-');
-                num += p2n;
+                decimal_value += p2n;
             } else {
                 csd.push('0');
             }
         }
     };
     loop_fn(0, &mut csd);
-    csd += ".";
+    csd.push('.');
     loop_fn(-places, &mut csd);
+
     csd
 }
 
@@ -108,7 +109,7 @@ pub fn to_csd(num: f64, places: i32) -> String {
 ///
 /// Arguments:
 ///
-/// * `num`: The `num` parameter is an integer that represents the number for which we want to generate
+/// * `decimal_value`: The `decimal_value` parameter is an integer that represents the number for which we want to generate
 /// the CSD (Canonical Signed Digit) representation.
 ///
 /// Returns:
@@ -126,28 +127,31 @@ pub fn to_csd(num: f64, places: i32) -> String {
 /// assert_eq!(to_csd_i(0), "0".to_string());
 /// ```
 #[allow(dead_code)]
-pub fn to_csd_i(num: i32) -> String {
-    if num == 0 {
+pub fn to_csd_i(decimal_value: i32) -> String {
+    if decimal_value == 0 {
         return "0".to_string();
     }
-    let temp = (num.abs() * 3 / 2) as u32;
+
+    let temp = (decimal_value.abs() * 3 / 2) as u32;
     let mut p2n = highest_power_of_two_in(temp) as i32 * 2;
     let mut csd = "".to_string();
-    let mut num = num;
+    let mut decimal_value = decimal_value;
+
     while p2n > 1 {
         let p2n_half = p2n / 2;
-        let det = 3 * num;
+        let det = 3 * decimal_value;
         if det > p2n {
             csd += "+";
-            num -= p2n_half;
+            decimal_value -= p2n_half;
         } else if det < -p2n {
             csd += "-";
-            num += p2n_half;
+            decimal_value += p2n_half;
         } else {
             csd += "0";
         }
         p2n = p2n_half;
     }
+
     csd
 }
 
@@ -181,49 +185,55 @@ pub fn to_csd_i(num: i32) -> String {
 /// ```
 #[allow(dead_code)]
 pub const fn to_decimal_i(csd: &[char]) -> i32 {
-    let mut num: i32 = 0;
+    let mut decimal_value: i32 = 0;
     let mut remaining = csd;
+
     while let [digit, tail @ ..] = remaining {
         match *digit {
-            '0' => num *= 2,
-            '+' => num = num * 2 + 1,
-            '-' => num = num * 2 - 1,
-            _ => panic!("Work with 0, +, - only"),
+            '0' => decimal_value *= 2,
+            '+' => decimal_value = decimal_value * 2 + 1,
+            '-' => decimal_value = decimal_value * 2 - 1,
+            _ => panic!("Work with 0, +, and - only"),
         }
         remaining = tail;
     }
-    num
+
+    decimal_value
 }
 
 pub fn to_decimal_integral(csd: &str) -> (i32, usize) {
-    let mut num: i32 = 0;
+    let mut decimal_value: i32 = 0;
+
     for (pos, digit) in csd.chars().enumerate() {
         match digit {
-            '0' => num *= 2,
-            '+' => num = num * 2 + 1,
-            '-' => num = num * 2 - 1,
+            '0' => decimal_value *= 2,
+            '+' => decimal_value = decimal_value * 2 + 1,
+            '-' => decimal_value = decimal_value * 2 - 1,
             '.' => {
-                return (num, pos + 1);
+                return (decimal_value, pos + 1);
             }
-            _ => panic!("Work with 0, +, -, . only"),
+            _ => panic!("Work with 0, +, -, and . only"),
         }
     }
-    (num, 0)
+
+    (decimal_value, 0)
 }
 
 pub fn to_decimal_fractional(csd: &str) -> f64 {
+    let mut decimal_value = 0.0;
     let mut scale = 0.5;
-    let mut num = 0.0;
+
     for digit in csd.chars() {
         match digit {
-            '0' => {}
-            '+' => num += scale,
-            '-' => num -= scale,
-            _ => panic!("Fractional part works with 0, +, - only"),
+            '0' => {},
+            '+' => decimal_value += scale,
+            '-' => decimal_value -= scale,
+            _ => panic!("Fractional part works with 0, +, and - only"),
         }
         scale /= 2.0;
     }
-    num
+
+    decimal_value
 }
 
 /// Convert the CSD (Canonical Signed Digit) to a decimal
@@ -259,9 +269,11 @@ pub fn to_decimal_fractional(csd: &str) -> f64 {
 /// ```
 pub fn to_decimal(csd: &str) -> f64 {
     let (integral, loc) = to_decimal_integral(csd);
+
     if loc == 0 {
         return integral as f64;
     }
+
     let fractional = to_decimal_fractional(&csd[loc..]);
     integral as f64 + fractional
 }
@@ -273,15 +285,15 @@ pub fn to_decimal(csd: &str) -> f64 {
 ///
 /// Arguments:
 ///
-/// * `num`: The `num` parameter is a double precision floating-point number that represents the input
+/// * `decimal_value`: The `decimal_value` parameter is a double precision floating-point number that represents the input
 /// value for conversion to CSD (Canonic Signed Digit) fixed-point representation.
 /// * `nnz`: The parameter `nnz` stands for "number of non-zero bits". It represents the maximum number
 /// of non-zero bits allowed in the output CSD (Canonical Signed Digit) representation of the given
-/// `num`.
+/// `decimal_value`.
 ///
 /// Returns:
 ///
-/// The function `to_csdfixed` returns a string representation of the given `num` in Canonical Signed
+/// The function `to_csdfixed` returns a string representation of the given `decimal_value` in Canonical Signed
 /// Digit (CSD) format.
 ///
 /// # Examples
@@ -302,11 +314,8 @@ pub fn to_decimal(csd: &str) -> f64 {
 /// assert_eq!(to_csdfixed(28.5, 1), "+00000".to_string());
 /// ```
 #[allow(dead_code)]
-pub fn to_csdfixed(num: f64, nnz: u32) -> String {
-    // if num == 0.0 {
-    //     return "0".to_string();
-    // }
-    let absnum = num.abs();
+pub fn to_csdfixed(decimal_value: f64, nnz: u32) -> String {
+    let absnum = decimal_value.abs();
     let (mut rem, mut csd) = if absnum < 1.0 {
         (0, "0".to_string())
     } else {
@@ -314,30 +323,32 @@ pub fn to_csdfixed(num: f64, nnz: u32) -> String {
         (rem, "".to_string())
     };
     let mut p2n = 2.0_f64.powi(rem);
-    let mut num = num;
+    let mut decimal_value = decimal_value;
     let mut nnz = nnz;
-    while rem > 0 || (nnz > 0 && num.abs() > 1e-100) {
+
+    while rem > 0 || (nnz > 0 && decimal_value.abs() > 1e-100) {
         if rem == 0 {
-            csd += ".";
+            csd.push('.');
         }
         p2n /= 2.0;
         rem -= 1;
-        let det = 1.5 * num;
+        let det = 1.5 * decimal_value;
         if det > p2n {
-            csd += "+";
-            num -= p2n;
+            csd.push('+');
+            decimal_value -= p2n;
             nnz -= 1;
         } else if det < -p2n {
             csd += "-";
-            num += p2n;
+            decimal_value += p2n;
             nnz -= 1;
         } else {
-            csd += "0";
+            csd.push('0');
         }
         if nnz == 0 {
-            num = 0.0;
+            decimal_value = 0.0;
         }
     }
+
     csd
 }
 
