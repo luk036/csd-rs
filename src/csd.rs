@@ -225,7 +225,7 @@ pub fn to_decimal_fractional(csd: &str) -> f64 {
 
     for digit in csd.chars() {
         match digit {
-            '0' => {},
+            '0' => {}
             '+' => decimal_value += scale,
             '-' => decimal_value -= scale,
             _ => panic!("Fractional part works with 0, +, and - only"),
