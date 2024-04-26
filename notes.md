@@ -5,10 +5,10 @@ use log::{info, debug};
 use csdigit::{to_csd, to_csdfixed, to_decimal};
 
 fn parse_args(args: &[String]) -> Result<Args, &'static str> {
-    let mut decimal = f64::INFINITY;
-    let mut decimal2 = f64::INFINITY;
-    let mut csdstr = String::new();
-    let mut loglevel = log::LevelFilter::Off;
+let mut decimal = f64::INFINITY;
+let mut decimal2 = f64::INFINITY;
+let mut csdstr = String::new();
+let mut loglevel = log::LevelFilter::Off;
 
     let mut i = 0;
     while i < args.len() {
@@ -37,30 +37,31 @@ fn parse_args(args: &[String]) -> Result<Args, &'static str> {
         csdstr,
         loglevel,
     })
+
 }
 
 fn setup_logging(loglevel: log::LevelFilter) {
-    env::set_var("RUST_LOG", "csdigit=debug");
-    env_logger::builder()
-        .format_timestamp(Some("%Y-%m-%d %H:%M:%S"))
-        .format(|buf, record| {
-            writeln!(
-                buf,
-                "[{}] {}: {}",
-                buf.timestamp(),
-                record.level(),
-                record.args()
-            )
-        })
-        .filter(None, loglevel)
-        .init();
+env::set_var("RUST_LOG", "csdigit=debug");
+env_logger::builder()
+.format_timestamp(Some("%Y-%m-%d %H:%M:%S"))
+.format(|buf, record| {
+writeln!(
+buf,
+"[{}] {}: {}",
+buf.timestamp(),
+record.level(),
+record.args()
+)
+})
+.filter(None, loglevel)
+.init();
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let args = parse_args(&args[1..]).unwrap();
-    setup_logging(args.loglevel);
-    debug!("Starting crazy calculations...");
+let args: Vec<String> = env::args().collect();
+let args = parse_args(&args[1..]).unwrap();
+setup_logging(args.loglevel);
+debug!("Starting crazy calculations...");
 
     if args.decimal != f64::INFINITY {
         let ans = to_csd(args.decimal, args.places);
@@ -76,22 +77,23 @@ fn main() {
     }
 
     info!("Script ends here");
+
 }
 
 struct Args {
-    decimal: f64,
-    decimal2: f64,
-    csdstr: String,
-    loglevel: log::LevelFilter,
+decimal: f64,
+decimal2: f64,
+csdstr: String,
+loglevel: log::LevelFilter,
 }
 
 fn run() {
-    main();
+main();
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+use super::\*;
 
     #[test]
     fn test_parse_args() {
@@ -108,6 +110,5 @@ mod tests {
         assert_eq!(args.csdstr, String::new());
         assert_eq!(args.loglevel, log::LevelFilter::Info);
     }
+
 }
-
-
