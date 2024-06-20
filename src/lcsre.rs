@@ -5,7 +5,7 @@
 ///
 /// Arguments:
 ///
-/// * `cstr`: A reference to a character array representing the input string. It is assumed that the
+/// * `sv`: A reference to a character array representing the input string. It is assumed that the
 /// string is null-terminated.
 ///
 /// Returns:
@@ -24,37 +24,37 @@
 /// assert_eq!(longest_repeated_substring(&cs), "");
 /// ```
 #[allow(dead_code)]
-pub fn longest_repeated_substring(cs: &str) -> String {
-    let ndim = cs.len() + 1;
-    let mut lcs_re = vec![vec![0; ndim]; ndim];
+pub fn longest_repeated_substring(sv: &str) -> String {
+    let ndim = sv.len() + 1;
+    let mut lcsre = vec![vec![0usize; ndim]; ndim];
 
-    let mut res = String::new();
-    let mut res_length = 0;
-    let mut start = 0;
+    let mut res_length = 0; // To store length of result
 
-    // Build the lcs_re table in bottom-up manner
+    // Building table in bottom-up manner
+    let mut index = 0; // To store the starting index of the result substring
     for i in 1..ndim {
-        for j in i..ndim {
-            if cs.as_bytes()[i - 1] == cs.as_bytes()[j - 1]
-                && lcs_re[i - 1][j - 1] < (j as isize - i as isize)
-            {
-                lcs_re[i][j] = lcs_re[i - 1][j - 1] + 1;
+        for j in i + 1..ndim {
+            // (j-i) > lcsre[i-1][j-1] to avoid overlapping
+            if sv.chars().nth(i - 1) == sv.chars().nth(j - 1) && lcsre[i - 1][j - 1] < (j - i) {
+                lcsre[i][j] = lcsre[i - 1][j - 1] + 1;
 
-                if lcs_re[i][j] > res_length {
-                    res_length = lcs_re[i][j];
-                    start = std::cmp::min(i, start);
+                // Updating maximum length of the substring and the starting index
+                if lcsre[i][j] > res_length {
+                    res_length = lcsre[i][j];
+                    index = i;
                 }
             } else {
-                lcs_re[i][j] = 0;
+                lcsre[i][j] = 0;
             }
         }
     }
 
-    // If we have a non-empty result, return the substring
-    if res_length > 0 {
-        let slice = &cs[start..start + res_length as usize];
-        res = String::from(slice);
-    }
+    // Constructing the result substring if there's a non-empty result
+    let res = if res_length > 0 {
+        sv[index - res_length..index].to_string()
+    } else {
+        "".to_string()
+    };
 
     res
 }
@@ -71,5 +71,8 @@ mod tests {
         let cstr = "abcdefgh";
         let res = longest_repeated_substring(cstr);
         assert_eq!(res, "");
+        let cstr = "banana";
+        let res = longest_repeated_substring(cstr);
+        assert_eq!(res, "an");
     }
 }
