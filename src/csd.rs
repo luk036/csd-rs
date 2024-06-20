@@ -138,7 +138,7 @@ pub fn to_csd_i(decimal_value: i32) -> String {
     let mut decimal_value = decimal_value;
 
     while p2n > 1 {
-        let p2n_half = p2n / 2;
+        let p2n_half = p2n >> 1;
         let det = 3 * decimal_value;
         if det > p2n {
             csd += "+";
@@ -190,9 +190,9 @@ pub const fn to_decimal_i(csd: &[char]) -> i32 {
 
     while let [digit, tail @ ..] = remaining {
         match *digit {
-            '0' => decimal_value *= 2,
-            '+' => decimal_value = decimal_value * 2 + 1,
-            '-' => decimal_value = decimal_value * 2 - 1,
+            '0' => decimal_value <<= 1,
+            '+' => decimal_value = (decimal_value << 1) + 1,
+            '-' => decimal_value = (decimal_value << 1) - 1,
             _ => panic!("Work with 0, +, and - only"),
         }
         remaining = tail;
@@ -206,9 +206,9 @@ pub fn to_decimal_integral(csd: &str) -> (i32, usize) {
 
     for (pos, digit) in csd.chars().enumerate() {
         match digit {
-            '0' => decimal_value *= 2,
-            '+' => decimal_value = decimal_value * 2 + 1,
-            '-' => decimal_value = decimal_value * 2 - 1,
+            '0' => decimal_value <<= 1,
+            '+' => decimal_value = (decimal_value << 1) + 1,
+            '-' => decimal_value = (decimal_value << 1) - 1,
             '.' => {
                 return (decimal_value, pos + 1);
             }
