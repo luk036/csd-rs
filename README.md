@@ -1,4 +1,4 @@
-# csd-rs
+# 🔄 csd-rs
 
 [![Crates.io](https://img.shields.io/crates/v/csd-rs.svg)](https://crates.io/crates/csd-rs)
 [![Docs.rs](https://docs.rs/csd-rs/badge.svg)](https://docs.rs/csd-rs)
