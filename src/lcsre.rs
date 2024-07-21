@@ -50,13 +50,13 @@ pub fn longest_repeated_substring(sv: &str) -> String {
     }
 
     // Constructing the result substring if there's a non-empty result
-    let res = if res_length > 0 {
+    
+
+    if res_length > 0 {
         sv[index - res_length..index].to_string()
     } else {
         "".to_string()
-    };
-
-    res
+    }
 }
 
 #[cfg(test)]
