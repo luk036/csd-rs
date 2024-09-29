@@ -2,7 +2,7 @@ use std::env;
 use std::f64;
 use std::str::FromStr;
 use log::{info, debug};
-use csdigit::{to_csd, to_csdfixed, to_decimal};
+use csdigit::{to_csd, to_csdnnz, to_decimal};
 
 fn parse_args(args: &[String]) -> Result<Args, &'static str> {
 let mut decimal = f64::INFINITY;
@@ -68,7 +68,7 @@ debug!("Starting crazy calculations...");
         println!("{}", ans);
     }
     if args.decimal2 != f64::INFINITY {
-        let ans = to_csdfixed(args.decimal2, args.nnz);
+        let ans = to_csdnnz(args.decimal2, args.nnz);
         println!("{}", ans);
     }
     if !args.csdstr.is_empty() {

@@ -280,7 +280,7 @@ pub fn to_decimal(csd: &str) -> f64 {
 
 /// Convert to CSD representation approximately with fixed number of non-zero
 ///
-/// The `to_csdfixed` function converts a given number into a CSD (Canonic Signed Digit) representation
+/// The `to_csdnnz` function converts a given number into a CSD (Canonic Signed Digit) representation
 /// approximately with a specified number of non-zero digits.
 ///
 /// Arguments:
@@ -293,28 +293,28 @@ pub fn to_decimal(csd: &str) -> f64 {
 ///
 /// Returns:
 ///
-/// The function `to_csdfixed` returns a string representation of the given `decimal_value` in Canonical Signed
+/// The function `to_csdnnz` returns a string representation of the given `decimal_value` in Canonical Signed
 /// Digit (CSD) format.
 ///
 /// # Examples
 ///
 /// ```
-/// use csd::csd::to_csdfixed;
+/// use csd::csd::to_csdnnz;
 ///
-/// let s1 = to_csdfixed(28.5, 4);
-/// let s2 = to_csdfixed(-0.5, 4);
+/// let s1 = to_csdnnz(28.5, 4);
+/// let s2 = to_csdnnz(-0.5, 4);
 ///
-/// assert_eq!(to_csdfixed(28.5, 4), "+00-00.+".to_string());
-/// assert_eq!(to_csdfixed(-0.5, 4), "0.-".to_string());
-/// assert_eq!(to_csdfixed(0.0, 4), "0".to_string());
-/// assert_eq!(to_csdfixed(0.0, 0), "0".to_string());
-/// assert_eq!(to_csdfixed(0.5, 4), "0.+".to_string());
-/// assert_eq!(to_csdfixed(-0.5, 4), "0.-".to_string());
-/// assert_eq!(to_csdfixed(28.5, 2), "+00-00".to_string());
-/// assert_eq!(to_csdfixed(28.5, 1), "+00000".to_string());
+/// assert_eq!(to_csdnnz(28.5, 4), "+00-00.+".to_string());
+/// assert_eq!(to_csdnnz(-0.5, 4), "0.-".to_string());
+/// assert_eq!(to_csdnnz(0.0, 4), "0".to_string());
+/// assert_eq!(to_csdnnz(0.0, 0), "0".to_string());
+/// assert_eq!(to_csdnnz(0.5, 4), "0.+".to_string());
+/// assert_eq!(to_csdnnz(-0.5, 4), "0.-".to_string());
+/// assert_eq!(to_csdnnz(28.5, 2), "+00-00".to_string());
+/// assert_eq!(to_csdnnz(28.5, 1), "+00000".to_string());
 /// ```
 #[allow(dead_code)]
-pub fn to_csdfixed(decimal_value: f64, nnz: u32) -> String {
+pub fn to_csdnnz(decimal_value: f64, nnz: u32) -> String {
     let absnum = decimal_value.abs();
     let (mut rem, mut csd) = if absnum < 1.0 {
         (0, "0".to_string())
@@ -412,14 +412,14 @@ mod tests {
 
     #[test]
     fn test_to_csdfixed() {
-        assert_eq!(to_csdfixed(28.5, 4), "+00-00.+".to_string());
-        assert_eq!(to_csdfixed(-0.5, 4), "0.-".to_string());
-        assert_eq!(to_csdfixed(0.0, 4), "0".to_string());
-        assert_eq!(to_csdfixed(0.0, 0), "0".to_string());
-        assert_eq!(to_csdfixed(0.5, 4), "0.+".to_string());
-        assert_eq!(to_csdfixed(-0.5, 4), "0.-".to_string());
-        assert_eq!(to_csdfixed(28.5, 2), "+00-00".to_string());
-        assert_eq!(to_csdfixed(28.5, 1), "+00000".to_string());
+        assert_eq!(to_csdnnz(28.5, 4), "+00-00.+".to_string());
+        assert_eq!(to_csdnnz(-0.5, 4), "0.-".to_string());
+        assert_eq!(to_csdnnz(0.0, 4), "0".to_string());
+        assert_eq!(to_csdnnz(0.0, 0), "0".to_string());
+        assert_eq!(to_csdnnz(0.5, 4), "0.+".to_string());
+        assert_eq!(to_csdnnz(-0.5, 4), "0.-".to_string());
+        assert_eq!(to_csdnnz(28.5, 2), "+00-00".to_string());
+        assert_eq!(to_csdnnz(28.5, 1), "+00000".to_string());
     }
 
     #[quickcheck]

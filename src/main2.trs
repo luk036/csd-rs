@@ -11,7 +11,7 @@
  License: GPL2
 */
 // mod lib;
-// use crate::lib::{to_csd, to_csdfixed, to_decimal};
+// use crate::lib::{to_csd, to_csdnnz, to_decimal};
 mod csd;
 mod lcsre;
 
@@ -19,7 +19,7 @@ use std::env;
 use std::f64;
 use std::str::FromStr;
 use log::{info, debug};
-use crate::csd::{to_csd, to_csdfixed, to_decimal};
+use crate::csd::{to_csd, to_csdnnz, to_decimal};
 
 fn parse_args(args: &[String]) -> Result<Args, &'static str> {
     let mut decimal = f64::INFINITY;
@@ -44,7 +44,7 @@ fn parse_args(args: &[String]) -> Result<Args, &'static str> {
                 places = i32::from_str(&args[i + 1]).unwrap();
                 i += 2;
             }
-            "-f" | "--to_csdfixed" => {
+            "-f" | "--to_csdnnz" => {
                 decimal2 = f64::from_str(&args[i + 1]).unwrap();
                 i += 2;
             }
@@ -102,7 +102,7 @@ fn main() {
         println!("{}", ans);
     }
     if args.decimal2 != f64::INFINITY {
-        let ans = to_csdfixed(args.decimal2, args.nnz);
+        let ans = to_csdnnz(args.decimal2, args.nnz);
         println!("{}", ans);
     }
     if !args.csdstr.is_empty() {

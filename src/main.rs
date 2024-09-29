@@ -11,11 +11,11 @@
  License: GPL2
 */
 // mod lib;
-// use crate::lib::{to_csd, to_csdfixed, to_decimal};
+// use crate::lib::{to_csd, to_csdnnz, to_decimal};
 mod csd;
 mod lcsre;
 
-use crate::csd::{to_csd, to_csdfixed, to_decimal};
+use crate::csd::{to_csd, to_csdnnz, to_decimal};
 use argparse::{ArgumentParser, Print, Store, StoreTrue};
 
 fn main() {
@@ -43,7 +43,7 @@ fn main() {
         ap.refer(&mut nnz)
             .add_option(&["-z", "--nnz"], Store, "Specify the number of non-zeros");
         ap.refer(&mut decimal2).add_option(
-            &["-f", "--to_csdfixed"],
+            &["-f", "--to_csdnnz"],
             Store,
             "Convert to CSD with fixed number of non-zeros (default is 3)",
         );
@@ -64,7 +64,7 @@ fn main() {
         println!("{}", ans);
     }
     if decimal2 != f64::INFINITY {
-        let ans = to_csdfixed(decimal2, nnz);
+        let ans = to_csdnnz(decimal2, nnz);
         println!("{}", ans);
     }
     if !csdstr.is_empty() {

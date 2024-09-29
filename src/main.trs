@@ -11,10 +11,10 @@
  License: GPL2
 */
 // mod lib;
-// use crate::lib::{to_csd, to_csdfixed, to_decimal};
+// use crate::lib::{to_csd, to_csdnnz, to_decimal};
 mod csd;
 mod lcsre;
-use crate::csd::{to_csd, to_csdfixed, to_decimal};
+use crate::csd::{to_csd, to_csdnnz, to_decimal};
 
 // extern crate structopt;
 
@@ -34,7 +34,7 @@ struct Options {
     /// Convert a number in CSD format, e.g. "+0-0.0-+", to a decimal
     csd: Option<String>,
 
-    #[structopt(short = "f", long = "to_csdfixed")]
+    #[structopt(short = "f", long = "to_csdnnz")]
     /// Convert a decimal, e.g. 56.3, to CSD string up to z non-zeros
     decimal2: Option<f64>,
 
@@ -70,7 +70,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match &options.decimal2 {
         Some(number) => {
-            println!("The ans is {}", to_csdfixed(*number, options.nnz));
+            println!("The ans is {}", to_csdnnz(*number, options.nnz));
         }
         None => {
             // ... print the cat as before
