@@ -6,7 +6,7 @@
 /// Arguments:
 ///
 /// * `sv`: A reference to a character array representing the input string. It is assumed that the
-/// string is null-terminated.
+///         string is null-terminated.
 ///
 /// Returns:
 ///

@@ -10,7 +10,7 @@
 /// Arguments:
 ///
 /// * `x`: The parameter `x` is an unsigned 32-bit integer. It represents the number for which we want
-/// to find the highest power of two that is less than or equal to it.
+///        to find the highest power of two that is less than or equal to it.
 ///
 /// Returns:
 ///
@@ -51,9 +51,9 @@ pub fn highest_power_of_two_in(mut x: u32) -> u32 {
 /// Arguments:
 ///
 /// * `decimal_value`: The `decimal_value` parameter is a double precision floating-point number that represents the value
-/// to be converted to CSD (Canonical Signed Digit) representation.
+///         to be converted to CSD (Canonical Signed Digit) representation.
 /// * `places`: The `places` parameter represents the number of decimal places to include in the CSD
-/// (Canonical Signed Digit) representation of the given `decimal_value`.
+///         (Canonical Signed Digit) representation of the given `decimal_value`.
 ///
 /// Returns:
 ///
@@ -110,7 +110,7 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
 /// Arguments:
 ///
 /// * `decimal_value`: The `decimal_value` parameter is an integer that represents the number for which we want to generate
-/// the CSD (Canonical Signed Digit) representation.
+///         the CSD (Canonical Signed Digit) representation.
 ///
 /// Returns:
 ///
@@ -162,7 +162,7 @@ pub fn to_csd_i(decimal_value: i32) -> String {
 /// Arguments:
 ///
 /// * `csd`: The `csd` parameter is a slice of characters representing a CSD (Canonical Signed Digit)
-/// string.
+///          string.
 ///
 /// Returns:
 ///
@@ -286,10 +286,10 @@ pub fn to_decimal(csd: &str) -> f64 {
 /// Arguments:
 ///
 /// * `decimal_value`: The `decimal_value` parameter is a double precision floating-point number that represents the input
-/// value for conversion to CSD (Canonic Signed Digit) fixed-point representation.
+///          value for conversion to CSD (Canonic Signed Digit) fixed-point representation.
 /// * `nnz`: The parameter `nnz` stands for "number of non-zero bits". It represents the maximum number
-/// of non-zero bits allowed in the output CSD (Canonical Signed Digit) representation of the given
-/// `decimal_value`.
+///          of non-zero bits allowed in the output CSD (Canonical Signed Digit) representation of the given
+///          `decimal_value`.
 ///
 /// Returns:
 ///
