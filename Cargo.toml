@@ -17,7 +17,7 @@ path = "src/lib.rs"
 
 [dependencies]
 argparse = "0.2.2"
-log = "0.4.25"
+log = "0.4.27"
 # rand = "0.5.5"
 # structopt = "0.3.26"
 
