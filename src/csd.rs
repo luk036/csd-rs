@@ -30,7 +30,7 @@
 /// assert_eq!(highest_power_of_two_in(2), 2);
 /// ```
 #[inline]
-pub fn highest_power_of_two_in(mut x: u32) -> u32 {
+pub const fn highest_power_of_two_in(mut x: u32) -> u32 {
     x |= x >> 1;
     x |= x >> 2;
     x |= x >> 4;
