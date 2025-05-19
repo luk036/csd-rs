@@ -352,6 +352,69 @@ pub fn to_csdnnz(decimal_value: f64, nnz: u32) -> String {
     csd
 }
 
+/// Convert to CSD (Canonical Signed Digit) String representation
+///
+/// The `to_csdnnz_i` function converts an integer into a Canonical Signed Digit (CSD) representation
+/// approximately with a specified number of non-zero digits.
+///
+/// Arguments:
+///
+/// * `decimal_value`: The `decimal_value` parameter is an integer that represents the number for which we want to generate
+///         the CSD (Canonical Signed Digit) representation.
+/// * `nnz`: The parameter `nnz` stands for "number of non-zero bits". It represents the maximum number
+///          of non-zero bits allowed in the output CSD (Canonical Signed Digit) representation of the given
+///          `decimal_value`.
+///
+/// Returns:
+///
+/// The function `to_csdnnz_i` returns a string representation of the given integer in Canonical Signed
+/// Digit (CSD) format.
+///
+/// # Examples
+///
+/// ```
+/// use csd::csd::to_csdnnz_i;
+///
+/// assert_eq!(to_csdnnz_i(28, 4), "+00-00".to_string());
+/// assert_eq!(to_csdnnz_i(-0, 4), "0".to_string());
+/// assert_eq!(to_csdnnz_i(0, 4), "0".to_string());
+/// assert_eq!(to_csdnnz_i(158, 2), "+0+00000".to_string());
+/// ```
+#[allow(dead_code)]
+pub fn to_csdnnz_i(decimal_value: i32, nnz: u32) -> String {
+    if decimal_value == 0 {
+        return "0".to_string();
+    }
+
+    let temp = (decimal_value.abs() * 3 / 2) as u32;
+    let mut p2n = highest_power_of_two_in(temp) as i32 * 2;
+    let mut csd = "".to_string();
+    let mut decimal_value = decimal_value;
+    let mut nnz = nnz;
+
+    while p2n > 1 {
+        let p2n_half = p2n >> 1;
+        let det = 3 * decimal_value;
+        if det > p2n {
+            csd += "+";
+            decimal_value -= p2n_half;
+            nnz -= 1;
+        } else if det < -p2n {
+            csd += "-";
+            decimal_value += p2n_half;
+            nnz -= 1;
+        } else {
+            csd += "0";
+        }
+        p2n = p2n_half;
+        if nnz == 0 {
+            decimal_value = 0;
+        }
+    }
+
+    csd
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -411,7 +474,7 @@ mod tests {
     }
 
     #[test]
-    fn test_to_csdfixed() {
+    fn test_to_csdnnz() {
         assert_eq!(to_csdnnz(28.5, 4), "+00-00.+".to_string());
         assert_eq!(to_csdnnz(-0.5, 4), "0.-".to_string());
         assert_eq!(to_csdnnz(0.0, 4), "0".to_string());
@@ -420,6 +483,15 @@ mod tests {
         assert_eq!(to_csdnnz(-0.5, 4), "0.-".to_string());
         assert_eq!(to_csdnnz(28.5, 2), "+00-00".to_string());
         assert_eq!(to_csdnnz(28.5, 1), "+00000".to_string());
+    }
+
+    #[test]
+    fn test_to_csdnnz_i() {
+        assert_eq!(to_csdnnz_i(28, 4), "+00-00".to_string());
+        assert_eq!(to_csdnnz_i(-0, 4), "0".to_string());
+        assert_eq!(to_csdnnz_i(0, 4), "0".to_string());
+        assert_eq!(to_csdnnz_i(0, 0), "0".to_string());
+        assert_eq!(to_csdnnz_i(158, 2), "+0+00000".to_string());
     }
 
     #[quickcheck]
