@@ -1,7 +1,8 @@
 /// Find the highest power of two less than or equal to a given number
 ///
 /// The `highest_power_of_two_in` function calculates the highest power of two that is less than or
-/// equal to a given number.
+/// equal to a given number. This is done through a bit manipulation technique that fills all bits
+/// below the most significant bit (MSB) with 1s, then shifts and XORs to isolate just the MSB.
 ///
 /// Reference:
 ///
@@ -31,18 +32,21 @@
 /// ```
 #[inline]
 pub const fn highest_power_of_two_in(mut x: u32) -> u32 {
+    // Propagate the highest set bit to all lower bits
     x |= x >> 1;
     x |= x >> 2;
     x |= x >> 4;
     x |= x >> 8;
     x |= x >> 16;
+    // Isolate the highest bit by XORing with the value shifted right by 1
     x ^ (x >> 1)
 }
 
 /// Convert to CSD (Canonical Signed Digit) String representation
 ///
 /// The `to_csd` function converts a given number to its Canonical Signed Digit (CSD) representation
-/// with a specified number of decimal places.
+/// with a specified number of decimal places. CSD is a number system where each digit can be -1, 0, or +1
+/// (represented by '-', '0', '+'), and no two adjacent digits are non-zero.
 ///
 /// - Original author: Harnesser
 /// - <https://sourceforge.net/projects/pycsd/>
@@ -72,14 +76,17 @@ pub const fn highest_power_of_two_in(mut x: u32) -> u32 {
 /// ```
 pub fn to_csd(decimal_value: f64, places: i32) -> String {
     let absnum = decimal_value.abs();
+    // Handle numbers less than 1.0 specially
     let (mut rem, mut csd) = if absnum < 1.0 {
         (0, "0".to_string())
     } else {
+        // Calculate the highest power of two needed
         let rem = (absnum * 1.5).log2().ceil() as i32;
         (rem, "".to_string())
     };
     let mut p2n = 2.0_f64.powi(rem);
     let mut decimal_value = decimal_value;
+    // Closure to handle both integer and fractional parts
     let mut loop_fn = |value: i32, csd: &mut String| {
         while rem > value {
             rem -= 1;
@@ -96,8 +103,10 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
             }
         }
     };
+    // Process integer part
     loop_fn(0, &mut csd);
     csd.push('.');
+    // Process fractional part
     loop_fn(-places, &mut csd);
 
     csd
@@ -106,6 +115,7 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
 /// Convert to CSD (Canonical Signed Digit) String representation
 ///
 /// The `to_csd_i` function converts an integer into a Canonical Signed Digit (CSD) representation.
+/// This version works with integers only and produces a CSD string without a decimal point.
 ///
 /// Arguments:
 ///
@@ -132,6 +142,7 @@ pub fn to_csd_i(decimal_value: i32) -> String {
         return "0".to_string();
     }
 
+    // Calculate the highest power of two needed
     let temp = (decimal_value.abs() * 3 / 2) as u32;
     let mut p2n = highest_power_of_two_in(temp) as i32 * 2;
     let mut csd = "".to_string();
@@ -158,6 +169,8 @@ pub fn to_csd_i(decimal_value: i32) -> String {
 /// Convert the CSD (Canonical Signed Digit) to a decimal
 ///
 /// The `to_decimal_i` function converts a CSD (Canonical Signed Digit) string to a decimal integer.
+/// This function processes the CSD string character by character, building up the decimal value
+/// through bit shifting and addition/subtraction operations.
 ///
 /// Arguments:
 ///
@@ -188,6 +201,7 @@ pub const fn to_decimal_i(csd: &[char]) -> i32 {
     let mut decimal_value: i32 = 0;
     let mut remaining = csd;
 
+    // Process each character in the CSD string
     while let [digit, tail @ ..] = remaining {
         match *digit {
             '0' => decimal_value <<= 1,
@@ -201,6 +215,10 @@ pub const fn to_decimal_i(csd: &[char]) -> i32 {
     decimal_value
 }
 
+/// Helper function to convert the integral part of a CSD string to decimal
+///
+/// This function processes the integral part (before the decimal point) of a CSD string,
+/// returning both the converted value and the position of the decimal point if found.
 pub fn to_decimal_integral(csd: &str) -> (i32, usize) {
     let mut decimal_value: i32 = 0;
 
@@ -219,18 +237,22 @@ pub fn to_decimal_integral(csd: &str) -> (i32, usize) {
     (decimal_value, 0)
 }
 
+/// Helper function to convert the fractional part of a CSD string to decimal
+///
+/// This function processes the fractional part (after the decimal point) of a CSD string,
+/// building up the decimal value by progressively halving the scale factor for each digit.
 pub fn to_decimal_fractional(csd: &str) -> f64 {
     let mut decimal_value = 0.0;
-    let mut scale = 0.5;
+    let mut scale = 0.5;  // Start with 2^-1
 
     for digit in csd.chars() {
         match digit {
-            '0' => {}
+            '0' => {}  // No change to value
             '+' => decimal_value += scale,
             '-' => decimal_value -= scale,
             _ => panic!("Fractional part works with 0, +, and - only"),
         }
-        scale /= 2.0;
+        scale /= 2.0;  // Move to next fractional bit
     }
 
     decimal_value
@@ -239,6 +261,7 @@ pub fn to_decimal_fractional(csd: &str) -> f64 {
 /// Convert the CSD (Canonical Signed Digit) to a decimal
 ///
 /// The `to_decimal` function converts a CSD (Canonical Signed Digit) string to a decimal number.
+/// This function handles both integral and fractional parts of the CSD representation.
 ///
 /// Arguments:
 ///
@@ -268,12 +291,14 @@ pub fn to_decimal_fractional(csd: &str) -> f64 {
 /// assert_eq!(to_decimal("0.-+"), -0.25);
 /// ```
 pub fn to_decimal(csd: &str) -> f64 {
+    // First convert the integral part
     let (integral, loc) = to_decimal_integral(csd);
 
     if loc == 0 {
         return integral as f64;
     }
 
+    // Then convert the fractional part if present
     let fractional = to_decimal_fractional(&csd[loc..]);
     integral as f64 + fractional
 }
@@ -281,7 +306,8 @@ pub fn to_decimal(csd: &str) -> f64 {
 /// Convert to CSD representation approximately with fixed number of non-zero
 ///
 /// The `to_csdnnz` function converts a given number into a CSD (Canonic Signed Digit) representation
-/// approximately with a specified number of non-zero digits.
+/// approximately with a specified number of non-zero digits. This version limits the number of
+/// non-zero digits in the output representation.
 ///
 /// Arguments:
 ///
@@ -326,6 +352,7 @@ pub fn to_csdnnz(decimal_value: f64, nnz: u32) -> String {
     let mut decimal_value = decimal_value;
     let mut nnz = nnz;
 
+    // Process both integer and fractional parts while respecting the nnz limit
     while rem > 0 || (nnz > 0 && decimal_value.abs() > 1e-100) {
         if rem == 0 {
             csd.push('.');
@@ -344,6 +371,7 @@ pub fn to_csdnnz(decimal_value: f64, nnz: u32) -> String {
         } else {
             csd.push('0');
         }
+        // Stop processing if we've used all non-zero digits
         if nnz == 0 {
             decimal_value = 0.0;
         }
@@ -355,7 +383,7 @@ pub fn to_csdnnz(decimal_value: f64, nnz: u32) -> String {
 /// Convert to CSD (Canonical Signed Digit) String representation
 ///
 /// The `to_csdnnz_i` function converts an integer into a Canonical Signed Digit (CSD) representation
-/// approximately with a specified number of non-zero digits.
+/// approximately with a specified number of non-zero digits. This is the integer version of to_csdnnz.
 ///
 /// Arguments:
 ///
@@ -386,6 +414,7 @@ pub fn to_csdnnz_i(decimal_value: i32, nnz: u32) -> String {
         return "0".to_string();
     }
 
+    // Calculate the highest power of two needed
     let temp = (decimal_value.abs() * 3 / 2) as u32;
     let mut p2n = highest_power_of_two_in(temp) as i32 * 2;
     let mut csd = "".to_string();
@@ -407,6 +436,7 @@ pub fn to_csdnnz_i(decimal_value: i32, nnz: u32) -> String {
             csd += "0";
         }
         p2n = p2n_half;
+        // Stop processing if we've used all non-zero digits
         if nnz == 0 {
             decimal_value = 0;
         }
