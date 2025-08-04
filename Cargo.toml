@@ -24,7 +24,7 @@ log = "0.4.27"
 [dev-dependencies]
 quickcheck = "1"
 quickcheck_macros = "1"
-criterion = "0.5"
+criterion = "0.7"
 
 [[bench]]
 name = "my_benchmark"
