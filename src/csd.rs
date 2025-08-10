@@ -537,4 +537,14 @@ mod tests {
         let chars: Vec<_> = csd.chars().collect();
         d == to_decimal_i(&chars)
     }
+
+    #[test]
+    fn test_highest_power_of_two_in() {
+        assert_eq!(highest_power_of_two_in(14), 8);
+        assert_eq!(highest_power_of_two_in(8), 8);
+        assert_eq!(highest_power_of_two_in(1), 1);
+        assert_eq!(highest_power_of_two_in(0), 0);
+        assert_eq!(highest_power_of_two_in(3), 2);
+        assert_eq!(highest_power_of_two_in(2), 2);
+    }
 }

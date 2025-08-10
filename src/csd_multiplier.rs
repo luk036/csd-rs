@@ -144,8 +144,8 @@ mod tests {
     #[test]
     fn test_valid_csd() {
         let csd = "+00-00+0+";
-        let multiplier = CsdMultiplier::new(csd, 8, 6).unwrap();
-        assert_eq!(multiplier.decimal_value(), 57);
+        let multiplier = CsdMultiplier::new(csd, 8, 8).unwrap();
+        assert_eq!(multiplier.decimal_value(), 229);
     }
 
     #[test]
