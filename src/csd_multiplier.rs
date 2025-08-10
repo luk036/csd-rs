@@ -12,12 +12,13 @@ impl CsdMultiplier {
         if !csd.chars().all(|c| matches!(c, '+' | '-' | '0')) {
             return Err("CSD string can only contain '+', '-', or '0'".to_string());
         }
-        
+
         // Validate length matches M
         if csd.len() != m + 1 {
             return Err(format!(
-                "CSD length {} doesn't match M={} (should be M+1)", 
-                csd.len(), m
+                "CSD length {} doesn't match M={} (should be M+1)",
+                csd.len(),
+                m
             ));
         }
 
@@ -30,21 +31,28 @@ impl CsdMultiplier {
 
     /// Calculate the decimal value represented by the CSD string
     fn decimal_value(&self) -> i32 {
-        self.csd.chars().enumerate().map(|(i, c)| {
-            let power = self.m - i;
-            match c {
-                '+' => 1 << power,
-                '-' => -(1 << power),
-                '0' => 0,
-                _ => unreachable!(),
-            }
-        }).sum()
+        self.csd
+            .chars()
+            .enumerate()
+            .map(|(i, c)| {
+                let power = self.m - i;
+                match c {
+                    '+' => 1 << power,
+                    '-' => -(1 << power),
+                    '0' => 0,
+                    _ => unreachable!(),
+                }
+            })
+            .sum()
     }
 
     /// Generate the Verilog module code
     pub fn generate_verilog(&self) -> String {
         // Parse non-zero terms
-        let terms: Vec<_> = self.csd.chars().enumerate()
+        let terms: Vec<_> = self
+            .csd
+            .chars()
+            .enumerate()
             .filter_map(|(i, c)| {
                 let power = self.m - i;
                 match c {
@@ -72,7 +80,8 @@ impl CsdMultiplier {
             "// CSD Multiplier for pattern: {} (value: {})",
             self.csd,
             self.decimal_value()
-        ).unwrap();
+        )
+        .unwrap();
 
         writeln!(
             output,
@@ -82,14 +91,16 @@ impl CsdMultiplier {
 );",
             self.n - 1,
             self.n + self.m - 1
-        ).unwrap();
+        )
+        .unwrap();
 
         // Generate shifted versions
         if !terms.is_empty() {
             writeln!(
                 output,
                 "\n    // Signed shifted versions (Verilog handles sign extension)"
-            ).unwrap();
+            )
+            .unwrap();
 
             for &power in &shift_powers {
                 let padding = self.m - power;
@@ -101,7 +112,8 @@ impl CsdMultiplier {
                     padding,
                     self.n - 1,
                     power
-                ).unwrap();
+                )
+                .unwrap();
             }
         }
 
@@ -113,7 +125,7 @@ impl CsdMultiplier {
         } else {
             let (first_power, first_op) = terms[0];
             let mut expr = format!("{}x_shift{}", first_op, first_power);
-            
+
             for (power, op) in &terms[1..] {
                 expr.push_str(&format!(" {} x_shift{}", op, power));
             }
@@ -127,12 +139,11 @@ impl CsdMultiplier {
 }
 
 fn main() {
-    let csd = "+00-00+";  // Represents 57
-    let n = 8;              // Input bit width
-    let m = 6;              // Highest power (2^6 for this CSD)
+    let csd = "+00-00+"; // Represents 57
+    let n = 8; // Input bit width
+    let m = 6; // Highest power (2^6 for this CSD)
 
-    let multiplier = CsdMultiplier::new(csd, n, m)
-        .expect("Invalid CSD parameters");
+    let multiplier = CsdMultiplier::new(csd, n, m).expect("Invalid CSD parameters");
 
     println!("{}", multiplier.generate_verilog());
 }

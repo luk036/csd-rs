@@ -25,8 +25,8 @@
 /// ```
 #[allow(dead_code)]
 pub fn longest_repeated_substring(sv: &str) -> String {
-    let ndim = sv.len() + 1;  // Dimension for the DP table (n+1 x n+1)
-    let mut lcsre = vec![vec![0usize; ndim]; ndim];  // DP table initialized with zeros
+    let ndim = sv.len() + 1; // Dimension for the DP table (n+1 x n+1)
+    let mut lcsre = vec![vec![0usize; ndim]; ndim]; // DP table initialized with zeros
 
     let mut res_length = 0; // To store length of the longest found substring
 
@@ -37,15 +37,15 @@ pub fn longest_repeated_substring(sv: &str) -> String {
             // Check if characters match and the substring wouldn't overlap
             // (j-i) > lcsre[i-1][j-1] ensures non-overlapping condition
             if sv.chars().nth(i - 1) == sv.chars().nth(j - 1) && lcsre[i - 1][j - 1] < (j - i) {
-                lcsre[i][j] = lcsre[i - 1][j - 1] + 1;  // Extend the length of the common substring
+                lcsre[i][j] = lcsre[i - 1][j - 1] + 1; // Extend the length of the common substring
 
                 // Update maximum length and starting index if we found a longer substring
                 if lcsre[i][j] > res_length {
                     res_length = lcsre[i][j];
-                    index = i;  // Store the ending index of the substring
+                    index = i; // Store the ending index of the substring
                 }
             } else {
-                lcsre[i][j] = 0;  // Reset length if characters don't match
+                lcsre[i][j] = 0; // Reset length if characters don't match
             }
         }
     }
@@ -55,7 +55,7 @@ pub fn longest_repeated_substring(sv: &str) -> String {
         // Extract substring from (index - length) to index
         sv[index - res_length..index].to_string()
     } else {
-        "".to_string()  // Return empty string if no repeated substring found
+        "".to_string() // Return empty string if no repeated substring found
     }
 }
 

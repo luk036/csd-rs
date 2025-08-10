@@ -243,16 +243,16 @@ pub fn to_decimal_integral(csd: &str) -> (i32, usize) {
 /// building up the decimal value by progressively halving the scale factor for each digit.
 pub fn to_decimal_fractional(csd: &str) -> f64 {
     let mut decimal_value = 0.0;
-    let mut scale = 0.5;  // Start with 2^-1
+    let mut scale = 0.5; // Start with 2^-1
 
     for digit in csd.chars() {
         match digit {
-            '0' => {}  // No change to value
+            '0' => {} // No change to value
             '+' => decimal_value += scale,
             '-' => decimal_value -= scale,
             _ => panic!("Fractional part works with 0, +, and - only"),
         }
-        scale /= 2.0;  // Move to next fractional bit
+        scale /= 2.0; // Move to next fractional bit
     }
 
     decimal_value
