@@ -170,4 +170,27 @@ mod tests {
         let csd = "+00-00+0+";
         assert!(CsdMultiplier::new(csd, 8, 5).is_err());
     }
+
+    #[test]
+    fn test_verilog_generation() {
+        let csd = "+0-";
+        let n = 8;
+        let m = 2;
+        let multiplier = CsdMultiplier::new(csd, n, m).unwrap();
+        let expected_verilog = r#"// CSD Multiplier for pattern: +0- (value: 3)
+module csd_multiplier (
+    input signed [7:0] x,      // Input value (signed)
+    output signed [9:0] result // Result (signed)
+);
+
+    // Signed shifted versions (Verilog handles sign extension)
+    wire signed [9:0] x_shift2 = $signed({ {0{x[7]}}, x}) << 2;
+    wire signed [9:0] x_shift0 = $signed({ {2{x[7]}}, x}) << 0;
+
+    // CSD implementation with signed arithmetic
+    assign result = x_shift2 - x_shift0;
+endmodule
+"#;
+        assert_eq!(multiplier.generate_verilog(), expected_verilog);
+    }
 }

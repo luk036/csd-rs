@@ -74,5 +74,14 @@ mod tests {
         let cstr = "banana";
         let res = longest_repeated_substring(cstr);
         assert_eq!(res, "an");
+        let cstr = "";
+        let res = longest_repeated_substring(cstr);
+        assert_eq!(res, "");
+        let cstr = "aaaaa";
+        let res = longest_repeated_substring(cstr);
+        assert_eq!(res, "aa");
+        let cstr = "ababa";
+        let res = longest_repeated_substring(cstr);
+        assert_eq!(res, "ab");
     }
 }

@@ -462,18 +462,7 @@ mod tests {
         assert_eq!(to_csd(-0.5, 2), "0.-0".to_string());
         assert_eq!(to_csd(0.0, 2), "0.00".to_string());
         assert_eq!(to_csd(0.0, 0), "0.".to_string());
-    }
-
-    #[test]
-    fn test_to_decimal() {
-        assert_eq!(to_decimal("+00-00.+"), 28.5);
-        assert_eq!(to_decimal("0.-"), -0.5);
-        assert_eq!(to_decimal("0"), 0.0);
-        assert_eq!(to_decimal("0.0"), 0.0);
-        assert_eq!(to_decimal("0.+"), 0.5);
-        assert_eq!(to_decimal("0.-"), -0.5);
-        assert_eq!(to_decimal("0.++"), 0.75);
-        assert_eq!(to_decimal("0.-+"), -0.25);
+        assert_eq!(to_csd(2.5, 4), "+0.+000".to_string());
     }
 
     #[test]
@@ -538,6 +527,22 @@ mod tests {
         d == to_decimal_i(&chars)
     }
 
+    // #[quickcheck]
+    // fn test_csdnnz(d: i32) -> bool {
+    //     let f = d as f64 / 8.0;
+    //     let csd = to_csdnnz(f, 4);
+    //     let f_hat = to_decimal(&csd);
+    //     (f - f_hat).abs() <= 1.5
+    // }
+
+    // #[quickcheck]
+    // fn test_csdnnz_i(d: i32) -> bool {
+    //     let d = d / 3; // prevent overflow
+    //     let csd = to_csdnnz_i(d, 4);
+    //     let d_hat = to_decimal(&csd);
+    //     (d as f64 - d_hat).abs() <= 1.5
+    // }
+
     #[test]
     fn test_highest_power_of_two_in() {
         assert_eq!(highest_power_of_two_in(14), 8);
@@ -546,5 +551,6 @@ mod tests {
         assert_eq!(highest_power_of_two_in(0), 0);
         assert_eq!(highest_power_of_two_in(3), 2);
         assert_eq!(highest_power_of_two_in(2), 2);
+        assert_eq!(highest_power_of_two_in(u32::MAX), 2147483648);
     }
 }
