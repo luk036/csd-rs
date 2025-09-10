@@ -1,11 +1,17 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 fn fibonacci(n: u64) -> u64 {
-    match n {
-        0 => 1,
-        1 => 1,
-        n => fibonacci(n - 1) + fibonacci(n - 2),
+    if n == 0 || n == 1 {
+        return 1;
     }
+    let mut a = 1;
+    let mut b = 1;
+    for _ in 2..=n {
+        let temp = a + b;
+        a = b;
+        b = temp;
+    }
+    b
 }
 
 fn criterion_benchmark(c: &mut Criterion) {

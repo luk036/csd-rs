@@ -25,7 +25,15 @@ log = "0.4.27"
 quickcheck = "1"
 quickcheck_macros = "1"
 criterion = "0.5"
+pprof = { version = "0.13", features = ["flamegraph"] }
 
 [[bench]]
 name = "my_benchmark"
 harness = false
+
+[[bench]]
+name = "csd_benchmark"
+harness = false
+
+[profile.bench]
+debug = true

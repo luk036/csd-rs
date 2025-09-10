@@ -78,11 +78,11 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
     let absnum = decimal_value.abs();
     // Handle numbers less than 1.0 specially
     let (mut rem, mut csd) = if absnum < 1.0 {
-        (0, "0".to_string())
+        (0, String::from("0"))
     } else {
         // Calculate the highest power of two needed
         let rem = (absnum * 1.5).log2().ceil() as i32;
-        (rem, "".to_string())
+        (rem, String::with_capacity((rem.abs() + places.abs() + 2) as usize)) // +2 for '.' and potential sign
     };
     let mut p2n = 2.0_f64.powi(rem);
     let mut decimal_value = decimal_value;
@@ -145,7 +145,7 @@ pub fn to_csd_i(decimal_value: i32) -> String {
     // Calculate the highest power of two needed
     let temp = (decimal_value.abs() * 3 / 2) as u32;
     let mut p2n = highest_power_of_two_in(temp) as i32 * 2;
-    let mut csd = "".to_string();
+    let mut csd = String::with_capacity(32); // Max 32 chars for i32
     let mut decimal_value = decimal_value;
 
     while p2n > 1 {
@@ -417,7 +417,7 @@ pub fn to_csdnnz_i(decimal_value: i32, nnz: u32) -> String {
     // Calculate the highest power of two needed
     let temp = (decimal_value.abs() * 3 / 2) as u32;
     let mut p2n = highest_power_of_two_in(temp) as i32 * 2;
-    let mut csd = "".to_string();
+    let mut csd = String::with_capacity(32); // Max 32 chars for i32
     let mut decimal_value = decimal_value;
     let mut nnz = nnz;
 
