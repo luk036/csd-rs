@@ -1,8 +1,8 @@
 use criterion::profiler::Profiler;
 use pprof::ProfilerGuard;
+use std::fs::File;
 use std::os::raw::c_int;
 use std::path::Path;
-use std::fs::File;
 
 pub struct FlamegraphProfiler<'a> {
     frequency: c_int,
@@ -24,7 +24,13 @@ impl<'a> Profiler for FlamegraphProfiler<'a> {
     }
 
     fn stop_profiling(&mut self, _benchmark_id: &str, benchmark_dir: &Path) {
-        let report = self.active_profiler.take().unwrap().report().build().unwrap();
+        let report = self
+            .active_profiler
+            .take()
+            .unwrap()
+            .report()
+            .build()
+            .unwrap();
         let file = File::create(benchmark_dir.join("flamegraph.svg")).unwrap();
         report.flamegraph(file).unwrap();
     }

@@ -82,7 +82,10 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
     } else {
         // Calculate the highest power of two needed
         let rem = (absnum * 1.5).log2().ceil() as i32;
-        (rem, String::with_capacity((rem.abs() + places.abs() + 2) as usize)) // +2 for '.' and potential sign
+        (
+            rem,
+            String::with_capacity((rem.abs() + places.abs() + 2) as usize),
+        ) // +2 for '.' and potential sign
     };
     let mut p2n = 2.0_f64.powi(rem);
     let mut decimal_value = decimal_value;
@@ -191,28 +194,17 @@ pub fn to_csd_i(decimal_value: i32) -> String {
 /// ```
 /// use csd::csd::to_decimal_i;
 ///
-/// let chars: Vec<_> = "+00-00".to_string().chars().collect();
-/// assert_eq!(to_decimal_i(&chars), 28);
-/// let chars: Vec<_> = "0".to_string().chars().collect();
-/// assert_eq!(to_decimal_i(&chars), 0);
+/// assert_eq!(to_decimal_i("+00-00"), 28);
+/// assert_eq!(to_decimal_i("0"), 0);
 /// ```
 #[allow(dead_code)]
-pub const fn to_decimal_i(csd: &[char]) -> i32 {
-    let mut decimal_value: i32 = 0;
-    let mut remaining = csd;
-
-    // Process each character in the CSD string
-    while let [digit, tail @ ..] = remaining {
-        match *digit {
-            '0' => decimal_value <<= 1,
-            '+' => decimal_value = (decimal_value << 1) + 1,
-            '-' => decimal_value = (decimal_value << 1) - 1,
-            _ => panic!("Work with 0, +, and - only"),
-        }
-        remaining = tail;
-    }
-
-    decimal_value
+pub fn to_decimal_i(csd: &str) -> i32 {
+    csd.chars().fold(0, |acc, digit| match digit {
+        '0' => acc << 1,
+        '+' => (acc << 1) + 1,
+        '-' => (acc << 1) - 1,
+        _ => panic!("Work with 0, +, and - only"),
+    })
 }
 
 /// Helper function to convert the integral part of a CSD string to decimal
@@ -479,17 +471,14 @@ mod tests {
 
     #[test]
     fn test_to_decimal_i() {
-        let chars: Vec<_> = "+00-00".to_string().chars().collect();
-        assert_eq!(to_decimal_i(&chars), 28);
-        let chars: Vec<_> = "0".to_string().chars().collect();
-        assert_eq!(to_decimal_i(&chars), 0);
+        assert_eq!(to_decimal_i("+00-00"), 28);
+        assert_eq!(to_decimal_i("0"), 0);
     }
 
     #[test]
     #[should_panic]
     fn test_to_decimal_i_invalid() {
-        let chars: Vec<_> = "+00-00.00+".to_string().chars().collect();
-        let _res = to_decimal_i(&chars);
+        let _res = to_decimal_i("+00-00.00+");
     }
 
     #[test]
@@ -523,8 +512,7 @@ mod tests {
     fn test_csd_i(d: i32) -> bool {
         let d = d / 3; // prevent overflow
         let csd = to_csd_i(d);
-        let chars: Vec<_> = csd.chars().collect();
-        d == to_decimal_i(&chars)
+        d == to_decimal_i(&csd)
     }
 
     // #[quickcheck]
