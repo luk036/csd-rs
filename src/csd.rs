@@ -75,44 +75,51 @@ pub const fn highest_power_of_two_in(mut x: u32) -> u32 {
 /// assert_eq!(to_csd(0.0, 0), "0.".to_string());
 /// ```
 pub fn to_csd(decimal_value: f64, places: i32) -> String {
+    if decimal_value == 0.0 {
+        let mut csd = "0.".to_string();
+        for _ in 0..places {
+            csd.push('0');
+        }
+        return csd;
+    }
     let absnum = decimal_value.abs();
     // Handle numbers less than 1.0 specially
     let (mut rem, mut csd) = if absnum < 1.0 {
-        (0, String::from("0"))
+        (0, vec![b'0'])
     } else {
         // Calculate the highest power of two needed
         let rem = (absnum * 1.5).log2().ceil() as i32;
         (
             rem,
-            String::with_capacity((rem.abs() + places.abs() + 2) as usize),
+            Vec::with_capacity((rem.abs() + places.abs() + 2) as usize),
         ) // +2 for '.' and potential sign
     };
     let mut p2n = 2.0_f64.powi(rem);
     let mut decimal_value = decimal_value;
     // Closure to handle both integer and fractional parts
-    let mut loop_fn = |value: i32, csd: &mut String| {
+    let mut loop_fn = |value: i32, csd: &mut Vec<u8>| {
         while rem > value {
             rem -= 1;
             p2n /= 2.0;
             let det = 1.5 * decimal_value;
             if det > p2n {
-                csd.push('+');
+                csd.push(b'+');
                 decimal_value -= p2n;
             } else if det < -p2n {
-                csd.push('-');
+                csd.push(b'-');
                 decimal_value += p2n;
             } else {
-                csd.push('0');
+                csd.push(b'0');
             }
         }
     };
     // Process integer part
     loop_fn(0, &mut csd);
-    csd.push('.');
+    csd.push(b'.');
     // Process fractional part
     loop_fn(-places, &mut csd);
 
-    csd
+    String::from_utf8(csd).unwrap()
 }
 
 /// Convert to CSD (Canonical Signed Digit) String representation
@@ -148,25 +155,25 @@ pub fn to_csd_i(decimal_value: i32) -> String {
     // Calculate the highest power of two needed
     let temp = (decimal_value.abs() * 3 / 2) as u32;
     let mut p2n = highest_power_of_two_in(temp) as i32 * 2;
-    let mut csd = String::with_capacity(32); // Max 32 chars for i32
+    let mut csd = Vec::with_capacity(32); // Max 32 chars for i32
     let mut decimal_value = decimal_value;
 
     while p2n > 1 {
         let p2n_half = p2n >> 1;
         let det = 3 * decimal_value;
         if det > p2n {
-            csd += "+";
+            csd.push(b'+');
             decimal_value -= p2n_half;
         } else if det < -p2n {
-            csd += "-";
+            csd.push(b'-');
             decimal_value += p2n_half;
         } else {
-            csd += "0";
+            csd.push(b'0');
         }
         p2n = p2n_half;
     }
 
-    csd
+    String::from_utf8(csd).unwrap()
 }
 
 /// Convert the CSD (Canonical Signed Digit) to a decimal

@@ -27,9 +27,6 @@ quickcheck_macros = "1.1.0"
 criterion = "0.7.0"
 pprof = { version = "0.15.0", features = ["flamegraph"] }
 
-[[bench]]
-name = "my_benchmark"
-harness = false
 
 [[bench]]
 name = "csd_benchmark"

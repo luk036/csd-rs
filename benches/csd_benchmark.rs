@@ -1,5 +1,5 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use csd::csd::{to_csd, to_csd_i};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 fn csd_benchmark(c: &mut Criterion) {
     c.bench_function("to_csd", |b| {
