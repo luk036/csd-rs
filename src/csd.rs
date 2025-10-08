@@ -30,6 +30,7 @@
 /// assert_eq!(highest_power_of_two_in(3), 2);
 /// assert_eq!(highest_power_of_two_in(2), 2);
 /// ```
+#[must_use]
 #[inline]
 pub const fn highest_power_of_two_in(mut x: u32) -> u32 {
     // Propagate the highest set bit to all lower bits
@@ -74,6 +75,10 @@ pub const fn highest_power_of_two_in(mut x: u32) -> u32 {
 /// assert_eq!(to_csd(0.0, 2), "0.00".to_string());
 /// assert_eq!(to_csd(0.0, 0), "0.".to_string());
 /// ```
+/// # Panics
+///
+/// Panics if the resulting CSD string is not valid UTF-8.
+#[must_use]
 pub fn to_csd(decimal_value: f64, places: i32) -> String {
     if decimal_value == 0.0 {
         let mut csd = "0.".to_string();
@@ -88,7 +93,9 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
         (0, vec![b'0'])
     } else {
         // Calculate the highest power of two needed
+        #[allow(clippy::cast_possible_truncation)]
         let rem = (absnum * 1.5).log2().ceil() as i32;
+        #[allow(clippy::cast_sign_loss)]
         (
             rem,
             Vec::with_capacity((rem.abs() + places.abs() + 2) as usize),
@@ -146,16 +153,21 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
 /// assert_eq!(to_csd_i(-0), "0".to_string());
 /// assert_eq!(to_csd_i(0), "0".to_string());
 /// ```
+/// # Panics
+///
+/// Panics if the resulting CSD string is not valid UTF-8.
 #[allow(dead_code)]
+#[must_use]
 pub fn to_csd_i(decimal_value: i32) -> String {
     if decimal_value == 0 {
         return "0".to_string();
     }
 
     // Calculate the highest power of two needed
-    let temp = (decimal_value.abs() * 3 / 2) as u32;
-    let mut p2n = highest_power_of_two_in(temp) as i32 * 2;
-    let mut csd = Vec::with_capacity(32); // Max 32 chars for i32
+            #[allow(clippy::cast_sign_loss)]
+            let temp = (decimal_value.abs() * 3 / 2) as u32;
+            #[allow(clippy::cast_possible_wrap)]
+            let mut p2n = highest_power_of_two_in(temp) as i32 * 2;    let mut csd = Vec::with_capacity(32); // Max 32 chars for i32
     let mut decimal_value = decimal_value;
 
     while p2n > 1 {
@@ -205,6 +217,7 @@ pub fn to_csd_i(decimal_value: i32) -> String {
 /// assert_eq!(to_decimal_i("0"), 0);
 /// ```
 #[allow(dead_code)]
+#[must_use]
 pub fn to_decimal_i(csd: &str) -> i32 {
     csd.chars().fold(0, |acc, digit| match digit {
         '0' => acc << 1,
@@ -218,6 +231,10 @@ pub fn to_decimal_i(csd: &str) -> i32 {
 ///
 /// This function processes the integral part (before the decimal point) of a CSD string,
 /// returning both the converted value and the position of the decimal point if found.
+/// # Panics
+///
+/// Panics if an unexpected character is encountered.
+#[must_use]
 pub fn to_decimal_integral(csd: &str) -> (i32, usize) {
     let mut decimal_value: i32 = 0;
 
@@ -240,6 +257,10 @@ pub fn to_decimal_integral(csd: &str) -> (i32, usize) {
 ///
 /// This function processes the fractional part (after the decimal point) of a CSD string,
 /// building up the decimal value by progressively halving the scale factor for each digit.
+/// # Panics
+///
+/// Panics if an unexpected character is encountered.
+#[must_use]
 pub fn to_decimal_fractional(csd: &str) -> f64 {
     let mut decimal_value = 0.0;
     let mut scale = 0.5; // Start with 2^-1
@@ -289,17 +310,18 @@ pub fn to_decimal_fractional(csd: &str) -> f64 {
 /// assert_eq!(to_decimal("0.++"), 0.75);
 /// assert_eq!(to_decimal("0.-+"), -0.25);
 /// ```
+#[must_use]
 pub fn to_decimal(csd: &str) -> f64 {
     // First convert the integral part
     let (integral, loc) = to_decimal_integral(csd);
 
     if loc == 0 {
-        return integral as f64;
+        return f64::from(integral);
     }
 
     // Then convert the fractional part if present
     let fractional = to_decimal_fractional(&csd[loc..]);
-    integral as f64 + fractional
+    f64::from(integral) + fractional
 }
 
 /// Convert to CSD representation approximately with fixed number of non-zero
@@ -339,13 +361,15 @@ pub fn to_decimal(csd: &str) -> f64 {
 /// assert_eq!(to_csdnnz(28.5, 1), "+00000".to_string());
 /// ```
 #[allow(dead_code)]
+#[must_use]
 pub fn to_csdnnz(decimal_value: f64, nnz: u32) -> String {
     let absnum = decimal_value.abs();
     let (mut rem, mut csd) = if absnum < 1.0 {
         (0, "0".to_string())
     } else {
+        #[allow(clippy::cast_possible_truncation)]
         let rem = (absnum * 1.5).log2().ceil() as i32;
-        (rem, "".to_string())
+        (rem, String::new())
     };
     let mut p2n = 2.0_f64.powi(rem);
     let mut decimal_value = decimal_value;
@@ -382,7 +406,7 @@ pub fn to_csdnnz(decimal_value: f64, nnz: u32) -> String {
 /// Convert to CSD (Canonical Signed Digit) String representation
 ///
 /// The `to_csdnnz_i` function converts an integer into a Canonical Signed Digit (CSD) representation
-/// approximately with a specified number of non-zero digits. This is the integer version of to_csdnnz.
+/// approximately with a specified number of non-zero digits. This is the integer version of `to_csdnnz`.
 ///
 /// Arguments:
 ///
