@@ -164,10 +164,11 @@ pub fn to_csd_i(decimal_value: i32) -> String {
     }
 
     // Calculate the highest power of two needed
-            #[allow(clippy::cast_sign_loss)]
-            let temp = (decimal_value.abs() * 3 / 2) as u32;
-            #[allow(clippy::cast_possible_wrap)]
-            let mut p2n = highest_power_of_two_in(temp) as i32 * 2;    let mut csd = Vec::with_capacity(32); // Max 32 chars for i32
+    #[allow(clippy::cast_sign_loss)]
+    let temp = (decimal_value.abs() * 3 / 2) as u32;
+    #[allow(clippy::cast_possible_wrap)]
+    let mut p2n = highest_power_of_two_in(temp) as i32 * 2;
+    let mut csd = Vec::with_capacity(32); // Max 32 chars for i32
     let mut decimal_value = decimal_value;
 
     while p2n > 1 {
