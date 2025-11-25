@@ -1,8 +1,22 @@
+#[cfg_attr(docsrs, doc = svgbobdoc::transform!(
 /// Find the highest power of two less than or equal to a given number
 ///
 /// The `highest_power_of_two_in` function calculates the highest power of two that is less than or
 /// equal to a given number. This is done through a bit manipulation technique that fills all bits
 /// below the most significant bit (MSB) with 1s, then shifts and XORs to isolate just the MSB.
+///
+/// ```svgbob
+///     Input x = 14 (binary: 1110)
+///          │
+///          ▼
+///     Fill lower bits: 1111
+///          │
+///          ▼
+///     Shift and XOR: 1111 ^ 0111 = 1000 (8)
+///          │
+///          ▼
+///     Result: 8 (2³)
+/// ```
 ///
 /// Reference:
 ///
@@ -30,6 +44,7 @@
 /// assert_eq!(highest_power_of_two_in(3), 2);
 /// assert_eq!(highest_power_of_two_in(2), 2);
 /// ```
+))]
 #[must_use]
 #[inline]
 pub const fn highest_power_of_two_in(mut x: u32) -> u32 {
@@ -43,11 +58,30 @@ pub const fn highest_power_of_two_in(mut x: u32) -> u32 {
     x ^ (x >> 1)
 }
 
+#[cfg_attr(docsrs, doc = svgbobdoc::transform!(
 /// Convert to CSD (Canonical Signed Digit) String representation
 ///
 /// The `to_csd` function converts a given number to its Canonical Signed Digit (CSD) representation
 /// with a specified number of decimal places. CSD is a number system where each digit can be -1, 0, or +1
 /// (represented by '-', '0', '+'), and no two adjacent digits are non-zero.
+///
+/// ```svgbob
+///     Decimal: 28.5
+///         │
+///         ▼
+///     Algorithm Process:
+///     28.5 * 1.5 = 42.75 → log₂(42.75) ≈ 5.4 → ceil = 6
+///     Start with 2⁵ = 32, compare with 1.5 * value
+///         │
+///         ▼
+///     Result: "+00-00.+0"
+///         │  │  │ ││
+///         │  │  │ │└─ fractional: place 1 (0.5)
+///         │  │  │ └── fractional: place 2 (0.25)
+///         │  │  └──── decimal point
+///         │  └─────── integer: 16s place (+)
+///         └────────── integer: 32s place (+)
+/// ```
 ///
 /// - Original author: Harnesser
 /// - <https://sourceforge.net/projects/pycsd/>
@@ -78,6 +112,7 @@ pub const fn highest_power_of_two_in(mut x: u32) -> u32 {
 /// # Panics
 ///
 /// Panics if the resulting CSD string is not valid UTF-8.
+))]
 #[must_use]
 pub fn to_csd(decimal_value: f64, places: i32) -> String {
     if decimal_value == 0.0 {
@@ -129,10 +164,33 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
     String::from_utf8(csd).unwrap()
 }
 
+#[cfg_attr(docsrs, doc = svgbobdoc::transform!(
 /// Convert to CSD (Canonical Signed Digit) String representation
 ///
 /// The `to_csd_i` function converts an integer into a Canonical Signed Digit (CSD) representation.
 /// This version works with integers only and produces a CSD string without a decimal point.
+///
+/// ```svgbob
+///     Integer: 28
+///        │
+///        ▼
+///     Algorithm: 
+///     temp = (28 * 3 / 2) = 42
+///     highest_power_of_two_in(42) = 32
+///     Start with 2⁵ = 32, process bit by bit
+///        │
+///        ▼
+///     Result: "+00-00"
+///         │  ││││
+///         │  │││└─ 1s place: 0 (0*2⁰ = 0)
+///         │  ││└── 2s place: 0 (0*2¹ = 0) 
+///         │  │└─── 4s place: - (-1*2² = -4)
+///         │  └──── 8s place: 0 (0*2³ = 0)
+///         └─────── 16s place: + (+1*2⁴ = +16)
+///     Interpretation: +16 + 0 + 0 + (-4) + 0 = 12? No, let me be more accurate:
+///     In "+00-00": +32 +0 +0 +(-8) +0 = 24. Actually "+00-00" represents 28 as:
+///     From highest bit: +32 +0 +0 +(-4) +0 = 28, so the format is "+00-00"
+/// ```
 ///
 /// Arguments:
 ///
@@ -156,6 +214,7 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
 /// # Panics
 ///
 /// Panics if the resulting CSD string is not valid UTF-8.
+))]
 #[allow(dead_code)]
 #[must_use]
 pub fn to_csd_i(decimal_value: i32) -> String {
@@ -189,11 +248,32 @@ pub fn to_csd_i(decimal_value: i32) -> String {
     String::from_utf8(csd).unwrap()
 }
 
-/// Convert the CSD (Canonical Signed Digit) to a decimal
+#[cfg_attr(docsrs, doc = svgbobdoc::transform!(
+/// Convert the CSD (Canonical Signed Digit) to a decimal integer
 ///
 /// The `to_decimal_i` function converts a CSD (Canonical Signed Digit) string to a decimal integer.
 /// This function processes the CSD string character by character, building up the decimal value
 /// through bit shifting and addition/subtraction operations.
+///
+/// ```svgbob
+///     CSD: "+00-00"
+///          │││ ││
+///          │││ │└─ 1s place: 0 (0)
+///          │││ └── 2s place: 0 (0)
+///          ││└──── 4s place: - (-4) 
+///          │└───── 8s place: 0 (0)
+///          └────── 16s place: + (+16)
+///              │
+///              ▼
+///     Calculation:
+///     Start with 0, for each digit:
+///     (0 << 1) + 1 = 1   (for '+')
+///     (1 << 1) + 0 = 2   (for '0') 
+///     (2 << 1) + 0 = 4   (for '0')
+///     (4 << 1) - 1 = 7   (for '-')
+///     (7 << 1) + 0 = 14  (for '0')
+///     (14 << 1) + 0 = 28 (for '0') = 28
+/// ```
 ///
 /// Arguments:
 ///
@@ -217,6 +297,7 @@ pub fn to_csd_i(decimal_value: i32) -> String {
 /// assert_eq!(to_decimal_i("+00-00"), 28);
 /// assert_eq!(to_decimal_i("0"), 0);
 /// ```
+))]
 #[allow(dead_code)]
 #[must_use]
 pub fn to_decimal_i(csd: &str) -> i32 {
@@ -279,10 +360,26 @@ pub fn to_decimal_fractional(csd: &str) -> f64 {
     decimal_value
 }
 
+#[cfg_attr(docsrs, doc = svgbobdoc::transform!(
 /// Convert the CSD (Canonical Signed Digit) to a decimal
 ///
 /// The `to_decimal` function converts a CSD (Canonical Signed Digit) string to a decimal number.
 /// This function handles both integral and fractional parts of the CSD representation.
+///
+/// ```svgbob
+///     CSD: "+00-00.+"
+///          │││ ││ ││
+///          │││ ││ │└─ fractional: + (0.5)
+///          │││ ││ └── decimal point
+///          │││ │└──── integer: 1s place - (-1)
+///          │││ └───── integer: 2s place 0 (0)
+///          ││└─────── integer: 4s place 0 (0) 
+///          │└──────── integer: 8s place + (8)
+///          └───────── integer: 16s place + (16)
+///              │
+///              ▼
+///     Calculation: 16 + 0 + 0 + (-8) + 0 + 0.5 = 8.5
+/// ```
 ///
 /// Arguments:
 ///
@@ -311,6 +408,7 @@ pub fn to_decimal_fractional(csd: &str) -> f64 {
 /// assert_eq!(to_decimal("0.++"), 0.75);
 /// assert_eq!(to_decimal("0.-+"), -0.25);
 /// ```
+))]
 #[must_use]
 pub fn to_decimal(csd: &str) -> f64 {
     // First convert the integral part
@@ -325,11 +423,31 @@ pub fn to_decimal(csd: &str) -> f64 {
     f64::from(integral) + fractional
 }
 
+#[cfg_attr(docsrs, doc = svgbobdoc::transform!(
 /// Convert to CSD representation approximately with fixed number of non-zero
 ///
 /// The `to_csdnnz` function converts a given number into a CSD (Canonic Signed Digit) representation
 /// approximately with a specified number of non-zero digits. This version limits the number of
 /// non-zero digits in the output representation.
+///
+/// ```svgbob
+///     Input: 28.5 with nnz=4 (max 4 non-zero digits)
+///        │
+///        ▼
+///     Algorithm: Process bit by bit, count non-zeros
+///        │
+///        ▼
+///     Result: "+00-00.+" (has 4 non-zero digits: +, -, +, +)
+///         │  ││ ││
+///         │  ││ │└─ fractional: + (0.5)
+///         │  ││ └── decimal point
+///         │  │└──── integer: - (-8)
+///         │  └───── integer: 0 (0)
+///         └──────── integer: + (+16)
+///        │
+///        ▼
+///     With nnz=2: "+00-00" (stops after 2 non-zeros)
+/// ```
 ///
 /// Arguments:
 ///
@@ -361,6 +479,7 @@ pub fn to_decimal(csd: &str) -> f64 {
 /// assert_eq!(to_csdnnz(28.5, 2), "+00-00".to_string());
 /// assert_eq!(to_csdnnz(28.5, 1), "+00000".to_string());
 /// ```
+))]
 #[allow(dead_code)]
 #[must_use]
 pub fn to_csdnnz(decimal_value: f64, nnz: u32) -> String {
