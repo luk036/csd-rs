@@ -300,13 +300,22 @@ pub fn to_csd_i(decimal_value: i32) -> String {
 ))]
 #[allow(dead_code)]
 #[must_use]
-pub fn to_decimal_i(csd: &str) -> i32 {
-    csd.chars().fold(0, |acc, digit| match digit {
-        '0' => acc << 1,
-        '+' => (acc << 1) + 1,
-        '-' => (acc << 1) - 1,
-        _ => panic!("Work with 0, +, and - only"),
-    })
+pub const fn to_decimal_i(csd: &str) -> i32 {
+    let mut result = 0i32;
+    let mut i = 0;
+    let bytes = csd.as_bytes();
+    
+    while i < bytes.len() {
+        match bytes[i] {
+            b'0' => result = result << 1,
+            b'+' => result = (result << 1) + 1,
+            b'-' => result = (result << 1) - 1,
+            _ => panic!("Work with 0, +, and - only"),
+        }
+        i += 1;
+    }
+    
+    result
 }
 
 /// Helper function to convert the integral part of a CSD string to decimal
