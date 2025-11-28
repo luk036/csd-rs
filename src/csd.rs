@@ -304,7 +304,7 @@ pub const fn to_decimal_i(csd: &str) -> i32 {
     let mut result = 0i32;
     let mut i = 0;
     let bytes = csd.as_bytes();
-    
+
     while i < bytes.len() {
         match bytes[i] {
             b'0' => result = result << 1,
@@ -314,7 +314,7 @@ pub const fn to_decimal_i(csd: &str) -> i32 {
         }
         i += 1;
     }
-    
+
     result
 }
 
