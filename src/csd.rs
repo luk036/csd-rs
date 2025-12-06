@@ -174,7 +174,7 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
 ///     Integer: 28
 ///        │
 ///        ▼
-///     Algorithm: 
+///     Algorithm:
 ///     temp = (28 * 3 / 2) = 42
 ///     highest_power_of_two_in(42) = 32
 ///     Start with 2⁵ = 32, process bit by bit
@@ -183,7 +183,7 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
 ///     Result: "+00-00"
 ///         │  ││││
 ///         │  │││└─ 1s place: 0 (0*2⁰ = 0)
-///         │  ││└── 2s place: 0 (0*2¹ = 0) 
+///         │  ││└── 2s place: 0 (0*2¹ = 0)
 ///         │  │└─── 4s place: - (-1*2² = -4)
 ///         │  └──── 8s place: 0 (0*2³ = 0)
 ///         └─────── 16s place: + (+1*2⁴ = +16)
@@ -260,7 +260,7 @@ pub fn to_csd_i(decimal_value: i32) -> String {
 ///          │││ ││
 ///          │││ │└─ 1s place: 0 (0)
 ///          │││ └── 2s place: 0 (0)
-///          ││└──── 4s place: - (-4) 
+///          ││└──── 4s place: - (-4)
 ///          │└───── 8s place: 0 (0)
 ///          └────── 16s place: + (+16)
 ///              │
@@ -268,7 +268,7 @@ pub fn to_csd_i(decimal_value: i32) -> String {
 ///     Calculation:
 ///     Start with 0, for each digit:
 ///     (0 << 1) + 1 = 1   (for '+')
-///     (1 << 1) + 0 = 2   (for '0') 
+///     (1 << 1) + 0 = 2   (for '0')
 ///     (2 << 1) + 0 = 4   (for '0')
 ///     (4 << 1) - 1 = 7   (for '-')
 ///     (7 << 1) + 0 = 14  (for '0')
@@ -382,7 +382,7 @@ pub fn to_decimal_fractional(csd: &str) -> f64 {
 ///          │││ ││ └── decimal point
 ///          │││ │└──── integer: 1s place - (-1)
 ///          │││ └───── integer: 2s place 0 (0)
-///          ││└─────── integer: 4s place 0 (0) 
+///          ││└─────── integer: 4s place 0 (0)
 ///          │└──────── integer: 8s place + (8)
 ///          └───────── integer: 16s place + (16)
 ///              │
