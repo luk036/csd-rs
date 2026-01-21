@@ -481,7 +481,6 @@ pub fn to_decimal(csd: &str) -> f64 {
 /// assert_eq!(to_decimal_result("+00-00.+").unwrap(), 28.5);
 /// assert!(to_decimal_result("+00X-00").is_err());
 /// ```
-#[must_use]
 pub fn to_decimal_result(csd: &str) -> CsdResult<f64> {
     // Validate characters first
     for (i, c) in csd.chars().enumerate() {
@@ -489,13 +488,12 @@ pub fn to_decimal_result(csd: &str) -> CsdResult<f64> {
             return Err(CsdError::InvalidCharacter(c));
         }
         // Check for multiple decimal points
-        if c == '.' {
-            if csd.chars().skip(i + 1).any(|c| c == '.') {
+        if c == '.'
+            && csd.chars().skip(i + 1).any(|c| c == '.') {
                 return Err(CsdError::InvalidFormat(
                     "Multiple decimal points".to_string(),
                 ));
             }
-        }
     }
 
     Ok(to_decimal(csd))
@@ -517,7 +515,6 @@ pub fn to_decimal_result(csd: &str) -> CsdResult<f64> {
 /// assert_eq!(to_decimal_i_result("+00-00").unwrap(), 28);
 /// assert!(to_decimal_i_result("+00X-00").is_err());
 /// ```
-#[must_use]
 pub fn to_decimal_i_result(csd: &str) -> CsdResult<i32> {
     // Validate characters first
     for c in csd.chars() {
@@ -536,7 +533,6 @@ pub fn to_decimal_i_result(csd: &str) -> CsdResult<i32> {
 /// # Errors
 ///
 /// Returns `CsdError::InvalidCharacter` if the CSD string contains invalid characters.
-#[must_use]
 pub fn to_decimal_i64_result(csd: &str) -> CsdResult<i64> {
     // Validate characters first
     for c in csd.chars() {
@@ -555,7 +551,6 @@ pub fn to_decimal_i64_result(csd: &str) -> CsdResult<i64> {
 /// # Errors
 ///
 /// Returns `CsdError::InvalidCharacter` if the CSD string contains invalid characters.
-#[must_use]
 pub fn to_decimal_i128_result(csd: &str) -> CsdResult<i128> {
     // Validate characters first
     for c in csd.chars() {
