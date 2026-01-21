@@ -15,9 +15,11 @@ license = "MIT OR Apache-2.0"
 name = "csd"
 path = "src/lib.rs"
 
+[[bin]]
+name = "csd-rs"
+path = "src/main.rs"
+
 [dependencies]
-argparse = "0.2.2"
-log = "0.4.28"
 svgbobdoc = { version = "0.3", default-features = false }
 # rand = "0.5.5"
 # structopt = "0.3.26"
@@ -29,7 +31,9 @@ criterion = "0.7.0"
 # pprof = { version = "0.15.0", features = ["flamegraph"] }
 
 [features]
-default = []
+default = ["multiplier", "lcsre"]
+multiplier = []
+lcsre = []
 docsrs = ["svgbobdoc/enable"]
 
 

@@ -1,3 +1,51 @@
+//! CSD Multiplier Module
+//!
+//! This module provides functionality to generate Verilog code for efficient constant multiplication
+//! using Canonical Signed Digit (CSD) representation. CSD representation minimizes the number of
+//! non-zero digits, which reduces the number of adders/subtractors needed in hardware implementation.
+//!
+//! # Overview
+//!
+//! In digital signal processing and hardware design, multiplying a variable by a constant is a common
+//! operation. Using CSD representation, we can implement these multiplications efficiently using only
+//! shifts, additions, and subtractions instead of full multipliers.
+//!
+//! # Example
+//!
+//! ```rust
+//! use csd::csd_multiplier::{CsdMultiplier, CsdMultiplierError};
+//!
+//! // Create a multiplier for CSD pattern "+0-" (which represents 3)
+//! // n=8 means input is 8 bits, m=2 means the highest power is 2^2
+//! let multiplier = CsdMultiplier::new("+0-", 8, 2).unwrap();
+//!
+//! // Generate Verilog code
+//! let verilog = multiplier.generate_verilog();
+//! println!("{}", verilog);
+//! ```
+//!
+//! # CSD Representation
+//!
+//! In CSD, each digit can be:
+//! - `+`: +1
+//! - `-`: -1
+//! - `0`: 0
+//!
+//! And no two consecutive digits can be non-zero. This property ensures minimal non-zero digits.
+//!
+//! # Hardware Benefits
+//!
+//! - Reduced gate count compared to traditional multipliers
+//! - Lower power consumption
+//! - Faster critical path
+//! - No need for full multiplier hardware
+//!
+//! # Error Handling
+//!
+//! The module returns `CsdMultiplierError` for:
+//! - Invalid characters in CSD string (only '+', '-', '0' allowed)
+//! - Length mismatch between CSD string and expected length (m+1)
+
 use std::fmt::Write;
 
 #[derive(Debug)]
@@ -6,6 +54,22 @@ pub enum CsdMultiplierError {
     LengthMismatch,
 }
 
+/// A CSD-based constant multiplier that generates Verilog code
+///
+/// # Example
+///
+/// ```rust
+/// use csd::csd_multiplier::{CsdMultiplier, CsdMultiplierError};
+///
+/// // Create a multiplier for the CSD pattern "+00-00+" (value: 57)
+/// // n=8: input bit width (8 bits)
+/// // m=6: highest power index (2^6 = 64 is the highest power used)
+/// let multiplier = CsdMultiplier::new("+00-00+", 8, 6).unwrap();
+///
+/// // Generate Verilog code
+/// let verilog = multiplier.generate_verilog();
+/// assert!(verilog.contains("module csd_multiplier"));
+/// ```
 pub struct CsdMultiplier {
     csd: String,
     n: usize,

@@ -31,6 +31,51 @@ Furthermore, the library incorporates error-checking mechanisms to guarantee the
 
 In conclusion, this library offers a comprehensive set of tools for working with CSD representations, facilitating the conversion between decimal and CSD formats in a variety of ways.
 
+## ⚡ Performance
+
+This library is optimized for performance with the following characteristics:
+
+### Algorithm Complexity
+
+- **to_csd / to_csd_i**: O(n) where n is the number of bits required to represent the number
+- **to_decimal / to_decimal_i**: O(m) where m is the length of the CSD string
+- **to_csdnnz / to_csdnnz_i**: O(n) with early termination when non-zero limit is reached
+- **longest_repeated_substring**: O(n²) time and space complexity using dynamic programming
+
+### Benchmarks
+
+Run the benchmark suite to measure performance on your system:
+
+```bash
+cargo bench
+```
+
+The benchmark suite includes tests for:
+- Basic conversion functions (to_csd, to_csd_i)
+- Non-zero limited conversions (to_csdnnz, to_csdnnz_i)
+- Reverse conversions (to_decimal, to_decimal_i)
+- Edge cases (zero, negative numbers, very small/large numbers)
+- Longest repeated substring with various input sizes
+
+### Optimization Notes
+
+- The `longest_repeated_substring` function has been optimized from O(n³) to O(n²) by converting the input string to a `Vec<char>` once instead of using `.chars().nth()` in nested loops
+- All conversion functions use efficient bit manipulation for power-of-two calculations
+- Memory allocation is pre-allocated where possible to reduce runtime overhead
+
+### Feature Flags
+
+To minimize compile time and binary size, you can disable optional features:
+
+```toml
+[dependencies]
+csd-rs = { version = "0.1", default-features = false, features = ["multiplier"] }
+```
+
+Available features:
+- `multiplier` (default): CSD multiplier module for Verilog code generation
+- `lcsre` (default): Longest common substring with repeated elements
+
 ## 🛠️ Installation
 
 ### 📦 Cargo

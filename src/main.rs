@@ -10,69 +10,75 @@
  Harnesser
  License: GPL2
 */
-// mod lib;
-// use crate::lib::{to_csd, to_csdnnz, to_decimal};
-mod csd;
-mod lcsre;
-
-use crate::csd::{to_csd, to_csdnnz, to_decimal};
-use argparse::{ArgumentParser, Print, Store, StoreTrue};
+use csd::csd::{to_csd, to_csdnnz, to_decimal};
 
 fn main() {
-    let mut verbose = false;
-    let mut decimal = f64::INFINITY;
-    let mut decimal2 = f64::INFINITY;
-    let mut csdstr = String::new();
-    let mut nnz = 3;
-    let mut places = 4;
-    {
-        // this block limits scope of borrows by ap.refer() method
-        let mut ap = ArgumentParser::new();
-        ap.set_description("Canonical Signed Digit (CSD) Conversion.");
-        ap.refer(&mut verbose)
-            .add_option(&["-v", "--verbose"], StoreTrue, "Be verbose");
-        ap.refer(&mut csdstr)
-            .add_option(&["-d", "--to_decimal"], Store, "Convert to decimal");
-        ap.refer(&mut decimal).add_option(
-            &["-c", "--to_csd"],
-            Store,
-            "Convert to CSD with places (default is 4)",
-        );
-        ap.refer(&mut places)
-            .add_option(&["-p", "--places"], Store, "Specify the places");
-        ap.refer(&mut nnz)
-            .add_option(&["-z", "--nnz"], Store, "Specify the number of non-zeros");
-        ap.refer(&mut decimal2).add_option(
-            &["-f", "--to_csdnnz"],
-            Store,
-            "Convert to CSD with fixed number of non-zeros (default is 3)",
-        );
-        ap.add_option(
-            &["-V", "--version"],
-            Print(env!("CARGO_PKG_VERSION").to_string()),
-            "Show version",
-        );
-        ap.parse_args_or_exit();
+    let args: Vec<String> = std::env::args().collect();
+
+    if args.len() < 2 {
+        println!("Usage: csd-rs <command> [args]");
+        println!("\nCommands:");
+        println!("  to_csd <value> [places]    - Convert decimal to CSD");
+        println!("  to_csdnnz <value> [nnz]    - Convert decimal to CSD with limited non-zeros");
+        println!("  to_decimal <csd_string>    - Convert CSD to decimal");
+        println!("\nExamples:");
+        println!("  csd-rs to_csd 28.5 2");
+        println!("  csd-rs to_csdnnz 28.5 4");
+        println!("  csd-rs to_decimal '+00-00.+'");
+        return;
     }
 
-    if verbose {
-        println!("Starting crazy calculations...");
-    }
-
-    if decimal != f64::INFINITY {
-        let ans = to_csd(decimal, places);
-        println!("{}", ans);
-    }
-    if decimal2 != f64::INFINITY {
-        let ans = to_csdnnz(decimal2, nnz);
-        println!("{}", ans);
-    }
-    if !csdstr.is_empty() {
-        let ans = to_decimal(&csdstr);
-        println!("{}", ans);
-    }
-
-    if verbose {
-        println!("Script ends here");
+    match args[1].as_str() {
+        "to_csd" => {
+            if args.len() < 3 {
+                eprintln!("Error: to_csd requires a value");
+                return;
+            }
+            let value: f64 = match args[2].parse() {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("Error parsing value: {}", e);
+                    return;
+                }
+            };
+            let places: i32 = if args.len() > 3 {
+                args[3].parse().unwrap_or(4)
+            } else {
+                4
+            };
+            let ans = to_csd(value, places);
+            println!("{}", ans);
+        }
+        "to_csdnnz" => {
+            if args.len() < 3 {
+                eprintln!("Error: to_csdnnz requires a value");
+                return;
+            }
+            let value: f64 = match args[2].parse() {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("Error parsing value: {}", e);
+                    return;
+                }
+            };
+            let nnz: u32 = if args.len() > 3 {
+                args[3].parse().unwrap_or(3)
+            } else {
+                3
+            };
+            let ans = to_csdnnz(value, nnz);
+            println!("{}", ans);
+        }
+        "to_decimal" => {
+            if args.len() < 3 {
+                eprintln!("Error: to_decimal requires a CSD string");
+                return;
+            }
+            let ans = to_decimal(&args[2]);
+            println!("{}", ans);
+        }
+        _ => {
+            eprintln!("Unknown command: {}", args[1]);
+        }
     }
 }
