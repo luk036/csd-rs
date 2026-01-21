@@ -488,12 +488,11 @@ pub fn to_decimal_result(csd: &str) -> CsdResult<f64> {
             return Err(CsdError::InvalidCharacter(c));
         }
         // Check for multiple decimal points
-        if c == '.'
-            && csd.chars().skip(i + 1).any(|c| c == '.') {
-                return Err(CsdError::InvalidFormat(
-                    "Multiple decimal points".to_string(),
-                ));
-            }
+        if c == '.' && csd.chars().skip(i + 1).any(|c| c == '.') {
+            return Err(CsdError::InvalidFormat(
+                "Multiple decimal points".to_string(),
+            ));
+        }
     }
 
     Ok(to_decimal(csd))
