@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use csd::{
-    csd::{to_csd, to_csd_i, to_csdnnz, to_csdnnz_i, to_decimal, to_decimal_i},
+    csd::{to_csd, to_csd_i, to_csdnnz, to_decimal, to_decimal_i},
     lcsre::longest_repeated_substring,
 };
 
@@ -17,10 +17,6 @@ fn csd_benchmark(c: &mut Criterion) {
     // Non-zero limited conversions
     c.bench_function("to_csdnnz", |b| {
         b.iter(|| to_csdnnz(std::hint::black_box(28.5), std::hint::black_box(4)))
-    });
-
-    c.bench_function("to_csdnnz_i", |b| {
-        b.iter(|| to_csdnnz_i(std::hint::black_box(28), std::hint::black_box(4)))
     });
 
     // Reverse conversions

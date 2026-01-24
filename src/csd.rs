@@ -7,7 +7,7 @@ use std::cell::RefCell;
 use std::fmt;
 
 thread_local! {
-    static STRING_BUFFER: RefCell<Vec<u8>> = RefCell::new(Vec::new());
+    static STRING_BUFFER: RefCell<Vec<u8>> = const { RefCell::new(Vec::new()) };
 }
 
 fn with_string_buffer<T, F>(f: F) -> T
@@ -513,7 +513,6 @@ pub fn to_csd_i(decimal_value: i32) -> String {
 /// ```
 ))]
 #[allow(dead_code)]
-#[must_use]
 pub fn to_decimal_i_safe(csd: &str) -> CsdResult<i32> {
     if csd.is_empty() {
         return Err(CsdError::EmptyString);
@@ -533,7 +532,7 @@ pub fn to_decimal_i_safe(csd: &str) -> CsdResult<i32> {
             '0' => result << 1,
             '+' => (result << 1) + 1,
             '-' => (result << 1) - 1,
-            _ => return Err(CsdError::InvalidCharacter(c, i as usize)),
+            _ => return Err(CsdError::InvalidCharacter(c, i)),
         };
 
         prev_was_nonzero = is_nonzero;
@@ -566,7 +565,6 @@ pub const fn to_decimal_i(csd: &str) -> i32 {
 ///
 /// This function processes the integral part (before the decimal point) of a CSD string,
 /// returning both the converted value and the position of decimal point if found.
-#[must_use]
 pub fn to_decimal_integral_safe(csd: &str) -> CsdResult<(i32, usize)> {
     let mut decimal_value: i32 = 0;
     let mut prev_was_nonzero = false;
@@ -585,7 +583,7 @@ pub fn to_decimal_integral_safe(csd: &str) -> CsdResult<(i32, usize)> {
             '.' => {
                 return Ok((decimal_value, pos + 1));
             }
-            _ => return Err(CsdError::InvalidCharacter(digit, pos as usize)),
+            _ => return Err(CsdError::InvalidCharacter(digit, pos)),
         }
 
         prev_was_nonzero = is_nonzero;
@@ -597,7 +595,7 @@ pub fn to_decimal_integral_safe(csd: &str) -> CsdResult<(i32, usize)> {
 #[must_use]
 pub fn to_decimal_fractional(csd: &str) -> f64 {
     let mut decimal_value = 0.0;
-    let mut scale = 0.5; 
+    let mut scale = 0.5;
 
     for digit in csd.chars() {
         match digit {
@@ -612,7 +610,6 @@ pub fn to_decimal_fractional(csd: &str) -> f64 {
     decimal_value
 }
 
-#[must_use]
 pub fn to_decimal_fractional_safe(csd: &str) -> CsdResult<f64> {
     if csd.is_empty() {
         return Ok(0.0);
@@ -626,9 +623,9 @@ pub fn to_decimal_fractional_safe(csd: &str) -> CsdResult<f64> {
             '0' => {}
             '+' => decimal_value += scale,
             '-' => decimal_value -= scale,
-            _ => return Err(CsdError::InvalidCharacter(digit, pos as usize)),
+            _ => return Err(CsdError::InvalidCharacter(digit, pos)),
         }
-scale /= 2.0;
+        scale /= 2.0;
     }
     Ok(decimal_value)
 }
@@ -687,7 +684,6 @@ pub fn to_decimal(csd: &str) -> f64 {
     to_decimal_safe(csd).unwrap()
 }
 
-#[must_use]
 pub fn to_decimal_safe(csd: &str) -> CsdResult<f64> {
     if csd.is_empty() {
         return Err(CsdError::EmptyString);
@@ -902,7 +898,6 @@ pub fn to_csdnnz(decimal_value: f64, nnz: u32) -> String {
     csd
 }
 
-#[must_use]
 pub fn to_csdnnz_safe(decimal_value: f64, nnz: u32) -> CsdResult<String> {
     if nnz == 0 && decimal_value != 0.0 {
         return Err(CsdError::InvalidFormat(
@@ -1264,7 +1259,9 @@ mod tests {
             result == 0
         } else {
             // result should be <= x, a power of two, and either equal to x or the next power would exceed x
-            result <= x && result.is_power_of_two() && (result == x || result.checked_mul(2).map_or(true, |v| v > x))
+            result <= x
+                && result.is_power_of_two()
+                && (result == x || result.checked_mul(2).is_none_or(|v| v > x))
         }
     }
 
@@ -1510,5 +1507,3 @@ mod tests {
         to_csdnnz(decimal_value as f64, nnz)
     }
 }
-
-
