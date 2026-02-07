@@ -18,10 +18,10 @@ fn run_csd_rs(args: &[&str]) -> (String, String, i32) {
     let stderr = stderr
         .lines()
         .filter(|line| {
-            !line.contains("Finished") &&
-            !line.contains("Compiling") &&
-            !line.contains("Running") &&
-            !line.trim().is_empty()
+            !line.contains("Finished")
+                && !line.contains("Compiling")
+                && !line.contains("Running")
+                && !line.trim().is_empty()
         })
         .collect::<Vec<_>>()
         .join("\n");
@@ -215,7 +215,7 @@ fn test_cli_to_csd_with_various_places() {
     let (stdout1, _, _) = run_csd_rs(&["to_csd", "28.5", "1"]);
     let (stdout2, _, _) = run_csd_rs(&["to_csd", "28.5", "4"]);
     let (stdout3, _, _) = run_csd_rs(&["to_csd", "28.5", "8"]);
-    
+
     // All should contain the integer part
     assert!(stdout1.contains("+00-00"));
     assert!(stdout2.contains("+00-00"));

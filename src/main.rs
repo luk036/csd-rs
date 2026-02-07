@@ -20,7 +20,9 @@ pub fn handle_to_csd(args: &[String]) -> CliResult {
     if args.len() < 3 {
         return Err("Error: to_csd requires a value".to_string());
     }
-    let value: f64 = args[2].parse().map_err(|e| format!("Error parsing value: {}", e))?;
+    let value: f64 = args[2]
+        .parse()
+        .map_err(|e| format!("Error parsing value: {}", e))?;
     let places: i32 = if args.len() > 3 {
         args[3].parse().unwrap_or(4)
     } else {
@@ -34,7 +36,9 @@ pub fn handle_to_csdnnz(args: &[String]) -> CliResult {
     if args.len() < 3 {
         return Err("Error: to_csdnnz requires a value".to_string());
     }
-    let value: f64 = args[2].parse().map_err(|e| format!("Error parsing value: {}", e))?;
+    let value: f64 = args[2]
+        .parse()
+        .map_err(|e| format!("Error parsing value: {}", e))?;
     let nnz: u32 = if args.len() > 3 {
         args[3].parse().unwrap_or(3)
     } else {
@@ -81,7 +85,12 @@ mod tests {
 
     #[test]
     fn test_handle_to_csd_basic() {
-        let args = vec!["csd-rs".to_string(), "to_csd".to_string(), "28.5".to_string(), "2".to_string()];
+        let args = vec![
+            "csd-rs".to_string(),
+            "to_csd".to_string(),
+            "28.5".to_string(),
+            "2".to_string(),
+        ];
         let result = handle_to_csd(&args);
         assert!(result.is_ok());
         assert!(result.unwrap().contains("+00-00"));
@@ -89,7 +98,11 @@ mod tests {
 
     #[test]
     fn test_handle_to_csd_default_places() {
-        let args = vec!["csd-rs".to_string(), "to_csd".to_string(), "28.5".to_string()];
+        let args = vec![
+            "csd-rs".to_string(),
+            "to_csd".to_string(),
+            "28.5".to_string(),
+        ];
         let result = handle_to_csd(&args);
         assert!(result.is_ok());
         assert!(result.unwrap().contains("+00-00"));
@@ -97,7 +110,12 @@ mod tests {
 
     #[test]
     fn test_handle_to_csd_zero() {
-        let args = vec!["csd-rs".to_string(), "to_csd".to_string(), "0".to_string(), "2".to_string()];
+        let args = vec![
+            "csd-rs".to_string(),
+            "to_csd".to_string(),
+            "0".to_string(),
+            "2".to_string(),
+        ];
         let result = handle_to_csd(&args);
         assert!(result.is_ok());
         assert!(result.unwrap().contains("0."));
@@ -105,7 +123,12 @@ mod tests {
 
     #[test]
     fn test_handle_to_csd_negative() {
-        let args = vec!["csd-rs".to_string(), "to_csd".to_string(), "-28.5".to_string(), "2".to_string()];
+        let args = vec![
+            "csd-rs".to_string(),
+            "to_csd".to_string(),
+            "-28.5".to_string(),
+            "2".to_string(),
+        ];
         let result = handle_to_csd(&args);
         assert!(result.is_ok());
         assert!(result.unwrap().starts_with('-'));
@@ -113,7 +136,11 @@ mod tests {
 
     #[test]
     fn test_handle_to_csd_invalid_value() {
-        let args = vec!["csd-rs".to_string(), "to_csd".to_string(), "invalid".to_string()];
+        let args = vec![
+            "csd-rs".to_string(),
+            "to_csd".to_string(),
+            "invalid".to_string(),
+        ];
         let result = handle_to_csd(&args);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Error parsing value"));
@@ -129,7 +156,12 @@ mod tests {
 
     #[test]
     fn test_handle_to_csdnnz_basic() {
-        let args = vec!["csd-rs".to_string(), "to_csdnnz".to_string(), "28.5".to_string(), "4".to_string()];
+        let args = vec![
+            "csd-rs".to_string(),
+            "to_csdnnz".to_string(),
+            "28.5".to_string(),
+            "4".to_string(),
+        ];
         let result = handle_to_csdnnz(&args);
         assert!(result.is_ok());
         assert!(result.unwrap().contains("+00-00"));
@@ -137,7 +169,11 @@ mod tests {
 
     #[test]
     fn test_handle_to_csdnnz_default_nnz() {
-        let args = vec!["csd-rs".to_string(), "to_csdnnz".to_string(), "28.5".to_string()];
+        let args = vec![
+            "csd-rs".to_string(),
+            "to_csdnnz".to_string(),
+            "28.5".to_string(),
+        ];
         let result = handle_to_csdnnz(&args);
         assert!(result.is_ok());
         assert!(result.unwrap().contains("+00-00"));
@@ -145,7 +181,12 @@ mod tests {
 
     #[test]
     fn test_handle_to_csdnnz_zero() {
-        let args = vec!["csd-rs".to_string(), "to_csdnnz".to_string(), "0".to_string(), "4".to_string()];
+        let args = vec![
+            "csd-rs".to_string(),
+            "to_csdnnz".to_string(),
+            "0".to_string(),
+            "4".to_string(),
+        ];
         let result = handle_to_csdnnz(&args);
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "0");
@@ -153,7 +194,11 @@ mod tests {
 
     #[test]
     fn test_handle_to_csdnnz_invalid_value() {
-        let args = vec!["csd-rs".to_string(), "to_csdnnz".to_string(), "invalid".to_string()];
+        let args = vec![
+            "csd-rs".to_string(),
+            "to_csdnnz".to_string(),
+            "invalid".to_string(),
+        ];
         let result = handle_to_csdnnz(&args);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Error parsing value"));
@@ -169,7 +214,11 @@ mod tests {
 
     #[test]
     fn test_handle_to_decimal_basic() {
-        let args = vec!["csd-rs".to_string(), "to_decimal".to_string(), "+00-00.+".to_string()];
+        let args = vec![
+            "csd-rs".to_string(),
+            "to_decimal".to_string(),
+            "+00-00.+".to_string(),
+        ];
         let result = handle_to_decimal(&args);
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "28.5");
@@ -177,7 +226,11 @@ mod tests {
 
     #[test]
     fn test_handle_to_decimal_integer() {
-        let args = vec!["csd-rs".to_string(), "to_decimal".to_string(), "+00-00".to_string()];
+        let args = vec![
+            "csd-rs".to_string(),
+            "to_decimal".to_string(),
+            "+00-00".to_string(),
+        ];
         let result = handle_to_decimal(&args);
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "28");
@@ -185,7 +238,11 @@ mod tests {
 
     #[test]
     fn test_handle_to_decimal_zero() {
-        let args = vec!["csd-rs".to_string(), "to_decimal".to_string(), "0".to_string()];
+        let args = vec![
+            "csd-rs".to_string(),
+            "to_decimal".to_string(),
+            "0".to_string(),
+        ];
         let result = handle_to_decimal(&args);
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "0");
@@ -193,7 +250,11 @@ mod tests {
 
     #[test]
     fn test_handle_to_decimal_negative() {
-        let args = vec!["csd-rs".to_string(), "to_decimal".to_string(), "-00+00".to_string()];
+        let args = vec![
+            "csd-rs".to_string(),
+            "to_decimal".to_string(),
+            "-00+00".to_string(),
+        ];
         let result = handle_to_decimal(&args);
         assert!(result.is_ok());
         assert!(result.unwrap().starts_with('-'));
@@ -204,7 +265,9 @@ mod tests {
         let args = vec!["csd-rs".to_string(), "to_decimal".to_string()];
         let result = handle_to_decimal(&args);
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("to_decimal requires a CSD string"));
+        assert!(result
+            .unwrap_err()
+            .contains("to_decimal requires a CSD string"));
     }
 
     #[test]
@@ -225,7 +288,12 @@ mod tests {
 
     #[test]
     fn test_run_cli_to_csd() {
-        let args = vec!["csd-rs".to_string(), "to_csd".to_string(), "28.5".to_string(), "2".to_string()];
+        let args = vec![
+            "csd-rs".to_string(),
+            "to_csd".to_string(),
+            "28.5".to_string(),
+            "2".to_string(),
+        ];
         let result = run_cli(&args);
         assert!(result.is_ok());
         assert!(result.unwrap().contains("+00-00"));
@@ -233,7 +301,12 @@ mod tests {
 
     #[test]
     fn test_run_cli_to_csdnnz() {
-        let args = vec!["csd-rs".to_string(), "to_csdnnz".to_string(), "28.5".to_string(), "4".to_string()];
+        let args = vec![
+            "csd-rs".to_string(),
+            "to_csdnnz".to_string(),
+            "28.5".to_string(),
+            "4".to_string(),
+        ];
         let result = run_cli(&args);
         assert!(result.is_ok());
         assert!(result.unwrap().contains("+00-00"));
@@ -241,7 +314,11 @@ mod tests {
 
     #[test]
     fn test_run_cli_to_decimal() {
-        let args = vec!["csd-rs".to_string(), "to_decimal".to_string(), "+00-00.+".to_string()];
+        let args = vec![
+            "csd-rs".to_string(),
+            "to_decimal".to_string(),
+            "+00-00.+".to_string(),
+        ];
         let result = run_cli(&args);
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "28.5");
@@ -249,9 +326,18 @@ mod tests {
 
     #[test]
     fn test_run_cli_roundtrip() {
-        let args1 = vec!["csd-rs".to_string(), "to_csd".to_string(), "42.5".to_string(), "4".to_string()];
+        let args1 = vec![
+            "csd-rs".to_string(),
+            "to_csd".to_string(),
+            "42.5".to_string(),
+            "4".to_string(),
+        ];
         let csd = run_cli(&args1).unwrap();
-        let args2 = vec!["csd-rs".to_string(), "to_decimal".to_string(), csd.trim().to_string()];
+        let args2 = vec![
+            "csd-rs".to_string(),
+            "to_decimal".to_string(),
+            csd.trim().to_string(),
+        ];
         let decimal: f64 = run_cli(&args2).unwrap().parse().unwrap();
         assert!((decimal - 42.5).abs() < 0.1);
     }
