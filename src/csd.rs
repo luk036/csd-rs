@@ -1506,4 +1506,383 @@ mod tests {
     pub fn to_csdnnz_i128(decimal_value: i128, nnz: u32) -> String {
         to_csdnnz(decimal_value as f64, nnz)
     }
+
+    // Tests for CsdBuilder
+    #[test]
+    fn test_csd_builder_new() {
+        let builder = CsdBuilder::new(28.5);
+        assert_eq!(builder.value, 28.5);
+        assert_eq!(builder.places, None);
+        assert_eq!(builder.max_non_zeros, None);
+    }
+
+    #[test]
+    fn test_csd_builder_places() {
+        let builder = CsdBuilder::new(28.5).places(4);
+        assert_eq!(builder.places, Some(4));
+
+        // Test negative places is clamped to 0
+        let builder = CsdBuilder::new(28.5).places(-5);
+        assert_eq!(builder.places, Some(0));
+    }
+
+    #[test]
+    fn test_csd_builder_max_non_zeros() {
+        let builder = CsdBuilder::new(28.5).max_non_zeros(3);
+        assert_eq!(builder.max_non_zeros, Some(3));
+    }
+
+    #[test]
+    fn test_csd_builder_rounding_strategy() {
+        let builder = CsdBuilder::new(28.5).rounding_strategy(RoundingStrategy::Nearest);
+        // Rounding strategy currently doesn't affect result, just check it doesn't crash
+        assert_eq!(builder.value, 28.5);
+    }
+
+    #[test]
+    fn test_csd_builder_build_simple() {
+        let csd = CsdBuilder::new(28.5).places(4).build().unwrap();
+        // Default places is 4, so result will have 4 fractional places
+        assert_eq!(csd, "+00-00.+000");
+    }
+
+    #[test]
+    fn test_csd_builder_build_with_max_non_zeros() {
+        let csd = CsdBuilder::new(28.5).max_non_zeros(3).build().unwrap();
+        let nnz_count = csd.chars().filter(|c| *c == '+' || *c == '-').count();
+        assert!(nnz_count <= 3);
+    }
+
+    #[test]
+    fn test_csd_builder_build_zero_value() {
+        let csd = CsdBuilder::new(0.0).places(4).build().unwrap();
+        assert_eq!(csd, "0.0000");
+    }
+
+    #[test]
+    fn test_csd_builder_build_zero_with_max_non_zeros() {
+        let csd = CsdBuilder::new(0.0).max_non_zeros(3).build().unwrap();
+        assert_eq!(csd, "0");
+    }
+
+    #[test]
+    fn test_csd_builder_build_nonzero_with_zero_max_non_zeros() {
+        let result = CsdBuilder::new(28.5).max_non_zeros(0).build();
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err(),
+            CsdError::InvalidFormat(
+                "Cannot represent non-zero value with 0 non-zero digits".to_string()
+            )
+        );
+    }
+
+    #[test]
+    fn test_csd_builder_build_negative_places() {
+        let result = CsdBuilder::new(28.5).places(-5).build();
+        // places is clamped to 0, so should succeed
+        assert!(result.is_ok());
+    }
+
+    // Tests for CsdError::Display
+    #[test]
+    fn test_csd_error_display_invalid_character() {
+        let err = CsdError::InvalidCharacter('X', 5);
+        assert_eq!(
+            format!("{}", err),
+            "Invalid character 'X' at position 5 in CSD string"
+        );
+    }
+
+    #[test]
+    fn test_csd_error_display_invalid_format() {
+        let err = CsdError::InvalidFormat("Multiple decimal points".to_string());
+        assert_eq!(
+            format!("{}", err),
+            "Invalid CSD format: Multiple decimal points"
+        );
+    }
+
+    #[test]
+    fn test_csd_error_display_overflow() {
+        let err = CsdError::Overflow {
+            input: 1e308,
+            max_bits: 32,
+        };
+        let msg = format!("{}", err);
+        assert!(msg.contains("Overflow"));
+        assert!(msg.contains("32 bits"));
+    }
+
+    #[test]
+    fn test_csd_error_display_precision_loss() {
+        let err = CsdError::PrecisionLoss {
+            input: 1.23456789012345678,
+            actual: 1.2345678901234567,
+        };
+        let msg = format!("{}", err);
+        assert!(msg.contains("Precision loss"));
+    }
+
+    #[test]
+    fn test_csd_error_display_consecutive_non_zero() {
+        let err = CsdError::ConsecutiveNonZero(3);
+        assert_eq!(
+            format!("{}", err),
+            "Consecutive non-zero digits at position 3"
+        );
+    }
+
+    #[test]
+    fn test_csd_error_display_empty_string() {
+        let err = CsdError::EmptyString;
+        assert_eq!(format!("{}", err), "Empty string provided");
+    }
+
+    // Tests for is_power_of_two
+    #[test]
+    fn test_is_power_of_two() {
+        assert!(is_power_of_two(1));
+        assert!(is_power_of_two(2));
+        assert!(is_power_of_two(4));
+        assert!(is_power_of_two(8));
+        assert!(is_power_of_two(16));
+        assert!(is_power_of_two(1024));
+        assert!(is_power_of_two(2147483648));
+
+        assert!(!is_power_of_two(0));
+        assert!(!is_power_of_two(3));
+        assert!(!is_power_of_two(5));
+        assert!(!is_power_of_two(6));
+        assert!(!is_power_of_two(7));
+        assert!(!is_power_of_two(9));
+        assert!(!is_power_of_two(15));
+        assert!(!is_power_of_two(u32::MAX));
+    }
+
+    // Tests for count_non_zero_digits
+    #[test]
+    fn test_count_non_zero_digits() {
+        assert_eq!(count_non_zero_digits("0"), 0);
+        assert_eq!(count_non_zero_digits("000"), 0);
+        assert_eq!(count_non_zero_digits("+"), 1);
+        assert_eq!(count_non_zero_digits("-"), 1);
+        assert_eq!(count_non_zero_digits("+00-00"), 2);
+        assert_eq!(count_non_zero_digits("+-+-+-"), 6);
+        assert_eq!(count_non_zero_digits("+00-00.+"), 3);
+        assert_eq!(count_non_zero_digits("0.00"), 0);
+        assert_eq!(count_non_zero_digits("0.+0.-0"), 2);
+    }
+
+    // Tests for validate_csd_format
+    #[test]
+    fn test_validate_csd_format() {
+        // Valid CSD strings
+        assert!(validate_csd_format("0"));
+        assert!(validate_csd_format("000"));
+        assert!(validate_csd_format("+"));
+        assert!(validate_csd_format("-"));
+        assert!(validate_csd_format("+00-00"));
+        assert!(validate_csd_format("0.+0"));
+        assert!(validate_csd_format("0.00"));
+        assert!(validate_csd_format("+0-0+"));
+
+        // Invalid: empty string
+        assert!(!validate_csd_format(""));
+
+        // Invalid: consecutive non-zero digits
+        assert!(!validate_csd_format("++"));
+        assert!(!validate_csd_format("--"));
+        assert!(!validate_csd_format("+-"));
+        assert!(!validate_csd_format("-+"));
+        assert!(!validate_csd_format("0++0"));
+        assert!(!validate_csd_format("+00--00"));
+
+        // Invalid: invalid characters
+        assert!(!validate_csd_format("123"));
+        assert!(!validate_csd_format("abc"));
+        assert!(!validate_csd_format("+0X-0"));
+        assert!(!validate_csd_format("*"));
+        assert!(!validate_csd_format(" "));
+    }
+
+    // Tests for to_decimal_fractional
+    #[test]
+    fn test_to_decimal_fractional() {
+        assert_eq!(to_decimal_fractional(""), 0.0);
+        assert_eq!(to_decimal_fractional("0"), 0.0);
+        assert_eq!(to_decimal_fractional("000"), 0.0);
+        assert_eq!(to_decimal_fractional("+"), 0.5);
+        assert_eq!(to_decimal_fractional("-"), -0.5);
+        assert_eq!(to_decimal_fractional("0+"), 0.25);
+        assert_eq!(to_decimal_fractional("0-"), -0.25);
+        assert_eq!(to_decimal_fractional("++"), 0.75);
+        assert_eq!(to_decimal_fractional("--"), -0.75);
+        assert_eq!(to_decimal_fractional("+-"), 0.25);
+        assert_eq!(to_decimal_fractional("-+"), -0.25);
+        // 8 bits pattern: 0+0+0+0+0+0+0+0 = 0.33331298828125
+        assert!((to_decimal_fractional("0+0+0+0+0+0+0+0") - 0.33331298828125).abs() < 1e-10);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_to_decimal_fractional_invalid_char() {
+        let _ = to_decimal_fractional("+0X-0");
+    }
+
+    // Tests for to_decimal_i_result
+    #[test]
+    fn test_to_decimal_i_result() {
+        assert_eq!(to_decimal_i_result("+00-00").unwrap(), 28);
+        assert_eq!(to_decimal_i_result("0").unwrap(), 0);
+        assert_eq!(to_decimal_i_result("-00+00").unwrap(), -28);
+
+        // Invalid characters
+        assert!(to_decimal_i_result("+00X-00").is_err());
+        assert_eq!(
+            to_decimal_i_result("+00X-00").unwrap_err(),
+            CsdError::InvalidCharacter('X', 0)
+        );
+
+        assert!(to_decimal_i_result("123").is_err());
+        assert!(to_decimal_i_result("abc").is_err());
+    }
+
+    // Tests for to_decimal_i64_result
+    #[test]
+    fn test_to_decimal_i64_result() {
+        assert_eq!(to_decimal_i64_result("+00-00").unwrap(), 28i64);
+        assert_eq!(to_decimal_i64_result("0").unwrap(), 0i64);
+        assert_eq!(to_decimal_i64_result("-00+00").unwrap(), -28i64);
+
+        // Invalid characters
+        assert!(to_decimal_i64_result("+00X-00").is_err());
+        assert_eq!(
+            to_decimal_i64_result("+00X-00").unwrap_err(),
+            CsdError::InvalidCharacter('X', 0)
+        );
+    }
+
+    // Tests for to_decimal_i128_result
+    #[test]
+    fn test_to_decimal_i128_result() {
+        assert_eq!(to_decimal_i128_result("+00-00").unwrap(), 28i128);
+        assert_eq!(to_decimal_i128_result("0").unwrap(), 0i128);
+        assert_eq!(to_decimal_i128_result("-00+00").unwrap(), -28i128);
+
+        // Invalid characters
+        assert!(to_decimal_i128_result("+00X-00").is_err());
+        assert_eq!(
+            to_decimal_i128_result("+00X-00").unwrap_err(),
+            CsdError::InvalidCharacter('X', 0)
+        );
+    }
+
+    // Tests for to_csdnnz_safe
+    #[test]
+    fn test_to_csdnnz_safe() {
+        // Valid conversions
+        let result = to_csdnnz_safe(28.5, 4).unwrap();
+        let nnz_count = result.chars().filter(|c| *c == '+' || *c == '-').count();
+        assert!(nnz_count <= 4);
+
+        assert_eq!(to_csdnnz_safe(-0.5, 4).unwrap(), "0.-");
+        assert_eq!(to_csdnnz_safe(0.0, 4).unwrap(), "0");
+        assert_eq!(to_csdnnz_safe(0.0, 0).unwrap(), "0");
+        assert_eq!(to_csdnnz_safe(0.5, 4).unwrap(), "0.+");
+
+        // Error: non-zero value with 0 max_non_zeros
+        let result = to_csdnnz_safe(28.5, 0);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err(),
+            CsdError::InvalidFormat(
+                "Cannot represent non-zero value with 0 non-zero digits".to_string()
+            )
+        );
+    }
+
+    // Tests for to_csdnnz_i64
+    #[test]
+    fn test_to_csdnnz_i64_explicit() {
+        // Check that the result has at most the specified number of non-zero digits
+        let csd = to_csdnnz_i64(28, 4);
+        let nnz_count = csd.chars().filter(|c| *c == '+' || *c == '-').count();
+        assert!(nnz_count <= 4);
+
+        assert_eq!(to_csdnnz_i64(0, 4), "0");
+        assert_eq!(to_csdnnz_i64(0, 0), "0");
+
+        // Check that with 2 non-zero digits, we get at most 2 non-zeros
+        let csd2 = to_csdnnz_i64(158, 2);
+        let nnz_count = csd2.chars().filter(|c| *c == '+' || *c == '-').count();
+        assert!(nnz_count <= 2);
+
+        // Test negative numbers
+        let csd3 = to_csdnnz_i64(-28, 4);
+        let nnz_count3 = csd3.chars().filter(|c| *c == '+' || *c == '-').count();
+        assert!(nnz_count3 <= 4);
+
+        // Test large numbers
+        let csd4 = to_csdnnz_i64(1000000, 5);
+        let nnz_count4 = csd4.chars().filter(|c| *c == '+' || *c == '-').count();
+        assert!(nnz_count4 <= 5);
+    }
+
+    // Tests for to_csdnnz_i128
+    #[test]
+    fn test_to_csdnnz_i128_explicit() {
+        // Check that the result has at most the specified number of non-zero digits
+        let csd = to_csdnnz_i128(28, 4);
+        let nnz_count = csd.chars().filter(|c| *c == '+' || *c == '-').count();
+        assert!(nnz_count <= 4);
+
+        assert_eq!(to_csdnnz_i128(0, 4), "0");
+        assert_eq!(to_csdnnz_i128(0, 0), "0");
+
+        // Check that with 2 non-zero digits, we get at most 2 non-zeros
+        let csd2 = to_csdnnz_i128(158, 2);
+        let nnz_count = csd2.chars().filter(|c| *c == '+' || *c == '-').count();
+        assert!(nnz_count <= 2);
+
+        // Test negative numbers
+        let csd3 = to_csdnnz_i128(-28, 4);
+        let nnz_count3 = csd3.chars().filter(|c| *c == '+' || *c == '-').count();
+        assert!(nnz_count3 <= 4);
+
+        // Test very large numbers
+        let csd4 = to_csdnnz_i128(1000000000000i128, 5);
+        let nnz_count4 = csd4.chars().filter(|c| *c == '+' || *c == '-').count();
+        assert!(nnz_count4 <= 5);
+    }
+
+    // Additional tests for to_decimal_result
+    #[test]
+    fn test_to_decimal_result_multiple_decimal_points() {
+        let result = to_decimal_result("+.0.");
+        assert!(result.is_err());
+        // Note: This will return InvalidCharacter for '.' since '.' is not a valid CSD digit
+        // The multiple decimal point check happens after character validation
+        let err = result.unwrap_err();
+        assert!(matches!(
+            err,
+            CsdError::InvalidCharacter(_, _) | CsdError::InvalidFormat(_)
+        ));
+    }
+
+    #[test]
+    fn test_to_decimal_result_empty_string() {
+        let result = to_decimal_result("");
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), CsdError::EmptyString);
+    }
+
+    #[test]
+    fn test_to_decimal_result_consecutive_non_zero() {
+        // Note: to_decimal_result doesn't validate consecutive non-zero digits
+        // It only validates characters and multiple decimal points
+        // So "++" should pass validation but to_decimal_safe will fail
+        let result = to_decimal_result("++");
+        assert!(result.is_err()); // Will fail in to_decimal_safe
+    }
 }
