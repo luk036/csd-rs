@@ -1,3 +1,28 @@
+//! Canonical Signed Digit (CSD) conversion library.
+//!
+//! This library provides functions to convert between decimal numbers and
+//! Canonical Signed Digit (CSD) representation.
+//!
+//! # Features
+//!
+//! - `multiplier` (default): CSD multiplier module for Verilog code generation
+//! - `lcsre` (default): Longest common substring with repeated elements
+//! - `std` (optional): Logging support via env_logger
+//!
+//! # Quick Start
+//!
+//! ```rust
+//! use csd::{to_csd, to_decimal};
+//!
+//! // Convert decimal to CSD
+//! let csd = to_csd(28.5, 2);
+//! assert_eq!(csd, "+00-00.+");
+//!
+//! // Convert CSD back to decimal
+//! let value = to_decimal("+00-00.+").unwrap();
+//! assert!((value - 28.5).abs() < 1e-10);
+//! ```
+
 pub mod csd;
 
 #[cfg(feature = "multiplier")]
@@ -19,3 +44,5 @@ pub use crate::csd_multiplier::{CsdMultiplier, CsdMultiplierError};
 
 #[cfg(feature = "lcsre")]
 pub use crate::lcsre::longest_repeated_substring;
+#[cfg(feature = "std")]
+pub mod logging;

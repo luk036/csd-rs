@@ -20,6 +20,8 @@ name = "csd-rs"
 path = "src/main.rs"
 
 [dependencies]
+env_logger = { version = "0.11", optional = true }
+log = { version = "0.4", optional = true }
 svgbobdoc = { version = "0.3", default-features = false }
 # rand = "0.5.5"
 # structopt = "0.3.26"
@@ -35,8 +37,8 @@ serial_test = "3.0.0"
 default = ["multiplier", "lcsre"]
 multiplier = []
 lcsre = []
+std = ["dep:env_logger", "dep:log"]
 docsrs = ["svgbobdoc/enable"]
-
 
 [[bench]]
 name = "csd_benchmark"
