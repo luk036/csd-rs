@@ -16,10 +16,10 @@
 //!
 //! // Convert decimal to CSD
 //! let csd = to_csd(28.5, 2);
-//! assert_eq!(csd, "+00-00.+");
+//! assert_eq!(csd, "+00-00.+0");
 //!
 //! // Convert CSD back to decimal
-//! let value = to_decimal("+00-00.+").unwrap();
+//! let value = to_decimal("+00-00.+0");
 //! assert!((value - 28.5).abs() < 1e-10);
 //! ```
 
@@ -44,5 +44,6 @@ pub use crate::csd_multiplier::{CsdMultiplier, CsdMultiplierError};
 
 #[cfg(feature = "lcsre")]
 pub use crate::lcsre::longest_repeated_substring;
+
 #[cfg(feature = "std")]
 pub mod logging;
