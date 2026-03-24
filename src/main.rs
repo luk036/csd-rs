@@ -1,18 +1,16 @@
 /**
- Canonical Signed Digit Functions
- Handles:
-  * Decimals
-  *
-  *
- eg, +00-00+000.0 or 0.+0000-00+
- Where: '+' is +1
-        '-' is -1
- Harnesser
- License: GPL2
-*/
+ * Canonical Signed Digit (CSD) Functions
+ *
+ * Handles conversion between decimal numbers and CSD representation.
+ * CSD uses: '+' for +1, '-' for -1, '0' for 0
+ * Example: +00-00+000.0 or 0.+0000-00+
+ *
+ * Original author: Harnesser
+ * License: GPL2
+ */
 use csd::csd::{to_csd, to_csdnnz, to_decimal};
 
-/// CLI result type
+/// CLI result type alias.
 pub type CliResult = Result<String, String>;
 
 /// Handle the to_csd command

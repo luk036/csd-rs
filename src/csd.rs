@@ -10,6 +10,10 @@ thread_local! {
     static STRING_BUFFER: RefCell<Vec<u8>> = const { RefCell::new(Vec::new()) };
 }
 
+/// Execute a closure with a thread-local string buffer for efficient string building.
+///
+/// This function provides a thread-local buffer to avoid repeated allocations
+/// when building CSD strings.
 fn with_string_buffer<T, F>(f: F) -> T
 where
     F: FnOnce(&mut Vec<u8>) -> T,
@@ -41,14 +45,26 @@ pub struct CsdBuilder {
     max_non_zeros: Option<u32>,
 }
 
+/// Rounding strategy for CSD conversion.
+///
+/// This enum defines different strategies for rounding when converting
+/// decimal numbers to CSD representation.
 #[derive(Debug, Clone, Copy)]
 pub enum RoundingStrategy {
+    /// Round to the nearest representable value
     Nearest,
+    /// Round down (toward zero)
     Down,
+    /// Round up (away from zero)
     Up,
 }
 
 impl CsdBuilder {
+    /// Create a new CsdBuilder with the given value.
+    ///
+    /// # Arguments
+    ///
+    /// * `value` - The decimal value to convert to CSD
     pub fn new(value: f64) -> Self {
         Self {
             value,
@@ -57,16 +73,31 @@ impl CsdBuilder {
         }
     }
 
+    /// Set the number of decimal places for the CSD output.
+    ///
+    /// # Arguments
+    ///
+    /// * `places` - Number of decimal places (must be non-negative)
     pub fn places(mut self, places: i32) -> Self {
         self.places = Some(places.max(0));
         self
     }
 
+    /// Set the maximum number of non-zero digits allowed.
+    ///
+    /// # Arguments
+    ///
+    /// * `max_non_zeros` - Maximum number of non-zero digits in the output
     pub fn max_non_zeros(mut self, max_non_zeros: u32) -> Self {
         self.max_non_zeros = Some(max_non_zeros);
         self
     }
 
+    /// Set the rounding strategy for conversion.
+    ///
+    /// # Arguments
+    ///
+    /// * `strategy` - The rounding strategy to use
     pub fn rounding_strategy(self, strategy: RoundingStrategy) -> Self {
         match strategy {
             RoundingStrategy::Nearest => self,
@@ -75,6 +106,13 @@ impl CsdBuilder {
         }
     }
 
+    /// Build the CSD string from the configured builder.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - `max_non_zeros` is 0 but the value is non-zero
+    /// - `places` is negative
     pub fn build(self) -> CsdResult<String> {
         let places = self.places.unwrap_or(4);
 
@@ -201,11 +239,41 @@ pub const fn highest_power_of_two_in(mut x: u32) -> u32 {
     x ^ (x >> 1)
 }
 
+/// Check if a number is a power of two.
+///
+/// A power of two is a number that can be expressed as 2^n where n is a non-negative integer.
+/// Examples: 1, 2, 4, 8, 16, 32, etc.
+///
+/// # Examples
+///
+/// ```
+/// use csd::csd::is_power_of_two;
+///
+/// assert!(is_power_of_two(1));
+/// assert!(is_power_of_two(2));
+/// assert!(is_power_of_two(16));
+/// assert!(!is_power_of_two(3));
+/// assert!(!is_power_of_two(0));
+/// ```
 #[must_use]
 pub const fn is_power_of_two(x: u32) -> bool {
     x != 0 && (x & (x - 1)) == 0
 }
 
+/// Count the number of non-zero digits in a CSD string.
+///
+/// Non-zero digits are those represented by '+' (value +1) or '-' (value -1).
+/// The digit '0' and the decimal point '.' are not counted.
+///
+/// # Examples
+///
+/// ```
+/// use csd::csd::count_non_zero_digits;
+///
+/// assert_eq!(count_non_zero_digits("+00-00"), 2);
+/// assert_eq!(count_non_zero_digits("000"), 0);
+/// assert_eq!(count_non_zero_digits("0.+0.-0"), 2);
+/// ```
 #[must_use]
 pub const fn count_non_zero_digits(csd: &str) -> usize {
     let mut count = 0;
@@ -223,6 +291,29 @@ pub const fn count_non_zero_digits(csd: &str) -> usize {
     count
 }
 
+/// Validate a CSD string format.
+///
+/// Validates that a string contains only valid CSD characters ('+', '-', '0', '.')
+/// and that no two consecutive non-zero digits exist (which would violate CSD constraints).
+///
+/// # Arguments
+///
+/// * `csd` - The string to validate
+///
+/// # Returns
+///
+/// `true` if the string is a valid CSD format, `false` otherwise.
+///
+/// # Examples
+///
+/// ```
+/// use csd::csd::validate_csd_format;
+///
+/// assert!(validate_csd_format("+00-00"));
+/// assert!(validate_csd_format("0.+0"));
+/// assert!(!validate_csd_format("")); // empty
+/// assert!(!validate_csd_format("++00")); // consecutive non-zero
+/// ```
 #[must_use]
 pub const fn validate_csd_format(csd: &str) -> bool {
     if csd.is_empty() {
@@ -513,6 +604,25 @@ pub fn to_csd_i(decimal_value: i32) -> String {
 /// ```
 ))]
 #[allow(dead_code)]
+/// Convert a CSD integer string to decimal i32 (with error handling).
+///
+/// This function validates the CSD string for consecutive non-zero digits
+/// and other validity constraints before conversion.
+///
+/// # Errors
+///
+/// Returns `CsdError::ConsecutiveNonZero` if two consecutive non-zero digits are found.
+/// Returns `CsdError::InvalidCharacter` if an invalid character is encountered.
+/// Returns `CsdError::EmptyString` if the input is empty.
+///
+/// # Examples
+///
+/// ```
+/// use csd::csd::to_decimal_i_safe;
+///
+/// assert_eq!(to_decimal_i_safe("+00-00").unwrap(), 28);
+/// assert!(to_decimal_i_safe("++00").is_err());
+/// ```
 pub fn to_decimal_i_safe(csd: &str) -> CsdResult<i32> {
     if csd.is_empty() {
         return Err(CsdError::EmptyString);
@@ -541,6 +651,23 @@ pub fn to_decimal_i_safe(csd: &str) -> CsdResult<i32> {
     Ok(result)
 }
 
+/// Convert a CSD integer string to decimal i32 (panicking version).
+///
+/// This is a convenience function that panics on invalid input.
+/// For error handling, use `to_decimal_i_safe` instead.
+///
+/// # Panics
+///
+/// Panics if the CSD string contains invalid characters.
+///
+/// # Examples
+///
+/// ```
+/// use csd::csd::to_decimal_i;
+///
+/// assert_eq!(to_decimal_i("+00-00"), 28);
+/// assert_eq!(to_decimal_i("0"), 0);
+/// ```
 #[allow(dead_code)]
 #[must_use]
 pub const fn to_decimal_i(csd: &str) -> i32 {
@@ -561,10 +688,25 @@ pub const fn to_decimal_i(csd: &str) -> i32 {
     result
 }
 
-/// Helper function to convert the integral part of a CSD string to decimal
+/// Convert the integral part of a CSD string to decimal (with error handling).
 ///
-/// This function processes the integral part (before the decimal point) of a CSD string,
-/// returning both the converted value and the position of decimal point if found.
+/// Processes only the integral part (before the decimal point) of a CSD string.
+/// Returns both the converted value and the position of the decimal point.
+///
+/// # Arguments
+///
+/// * `csd` - The CSD string to convert (integral part only)
+///
+/// # Returns
+///
+/// A tuple of `(i32, usize)` where:
+/// - `i32` is the converted integral value
+/// - `usize` is the position of the decimal point in the original string (0 if not found)
+///
+/// # Errors
+///
+/// Returns `CsdError::ConsecutiveNonZero` if consecutive non-zero digits are found.
+/// Returns `CsdError::InvalidCharacter` if an invalid character is encountered.
 pub fn to_decimal_integral_safe(csd: &str) -> CsdResult<(i32, usize)> {
     let mut decimal_value: i32 = 0;
     let mut prev_was_nonzero = false;
@@ -592,6 +734,24 @@ pub fn to_decimal_integral_safe(csd: &str) -> CsdResult<(i32, usize)> {
     Ok((decimal_value, 0))
 }
 
+/// Convert the fractional part of a CSD string to decimal (panicking version).
+///
+/// This function processes only the fractional part (after the decimal point) of a CSD string.
+/// Each digit contributes half the value of the previous digit (2^-1, 2^-2, 2^-3, ...).
+///
+/// # Panics
+///
+/// Panics if the string contains invalid characters (anything other than '+', '-', '0').
+///
+/// # Examples
+///
+/// ```
+/// use csd::csd::to_decimal_fractional;
+///
+/// assert_eq!(to_decimal_fractional("+0"), 0.5);
+/// assert_eq!(to_decimal_fractional("-0"), -0.5);
+/// assert_eq!(to_decimal_fractional("00"), 0.0);
+/// ```
 #[must_use]
 pub fn to_decimal_fractional(csd: &str) -> f64 {
     let mut decimal_value = 0.0;
@@ -610,6 +770,21 @@ pub fn to_decimal_fractional(csd: &str) -> f64 {
     decimal_value
 }
 
+/// Convert the fractional part of a CSD string to decimal (with error handling).
+///
+/// # Errors
+///
+/// Returns `CsdError::InvalidCharacter` if an invalid character is encountered.
+///
+/// # Examples
+///
+/// ```
+/// use csd::csd::to_decimal_fractional_safe;
+///
+/// assert_eq!(to_decimal_fractional_safe("+0").unwrap(), 0.5);
+/// assert_eq!(to_decimal_fractional_safe("").unwrap(), 0.0);
+/// assert!(to_decimal_fractional_safe("X").is_err());
+/// ```
 pub fn to_decimal_fractional_safe(csd: &str) -> CsdResult<f64> {
     if csd.is_empty() {
         return Ok(0.0);
@@ -684,6 +859,23 @@ pub fn to_decimal(csd: &str) -> f64 {
     to_decimal_safe(csd).unwrap()
 }
 
+/// Convert a CSD string to decimal (with error handling).
+///
+/// This function handles both integral and fractional parts of the CSD representation.
+///
+/// # Errors
+///
+/// Returns `CsdError::EmptyString` if the input is empty.
+/// Returns errors from `to_decimal_integral_safe` and `to_decimal_fractional_safe`.
+///
+/// # Examples
+///
+/// ```
+/// use csd::csd::to_decimal_safe;
+///
+/// assert_eq!(to_decimal_safe("+00-00.+").unwrap(), 28.5);
+/// assert!(to_decimal_safe("").is_err());
+/// ```
 pub fn to_decimal_safe(csd: &str) -> CsdResult<f64> {
     if csd.is_empty() {
         return Err(CsdError::EmptyString);
@@ -898,6 +1090,25 @@ pub fn to_csdnnz(decimal_value: f64, nnz: u32) -> String {
     csd
 }
 
+/// Convert to CSD with limited non-zero digits (with error handling).
+///
+/// This function converts a decimal value to CSD representation while limiting
+/// the number of non-zero digits. This is useful for approximations in hardware
+/// where minimizing adders/subtractors is important.
+///
+/// # Errors
+///
+/// Returns `CsdError::InvalidFormat` if `nnz` is 0 but the value is non-zero.
+///
+/// # Examples
+///
+/// ```
+/// use csd::csd::to_csdnnz_safe;
+///
+/// assert_eq!(to_csdnnz_safe(28.5, 4).unwrap(), "+00-00.+");
+/// assert_eq!(to_csdnnz_safe(0.0, 4).unwrap(), "0");
+/// assert!(to_csdnnz_safe(28.5, 0).is_err());
+/// ```
 pub fn to_csdnnz_safe(decimal_value: f64, nnz: u32) -> CsdResult<String> {
     if nnz == 0 && decimal_value != 0.0 {
         return Err(CsdError::InvalidFormat(

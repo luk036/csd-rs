@@ -48,9 +48,12 @@
 
 use std::fmt::Write;
 
+/// Error type for CSD multiplier operations.
 #[derive(Debug)]
 pub enum CsdMultiplierError {
+    /// Invalid character found in CSD string (only '+', '-', '0' allowed)
     InvalidCharacter,
+    /// Length of CSD string doesn't match expected length (m+1)
     LengthMismatch,
 }
 
@@ -77,6 +80,30 @@ pub struct CsdMultiplier {
 }
 
 impl CsdMultiplier {
+    /// Create a new CSD multiplier.
+    ///
+    /// # Arguments
+    ///
+    /// * `csd` - The CSD pattern string (e.g., "+0-")
+    /// * `n` - Input bit width
+    /// * `m` - Highest power index (length of CSD minus 1)
+    ///
+    /// # Errors
+    ///
+    /// Returns `CsdMultiplierError::InvalidCharacter` if the CSD string contains
+    /// characters other than '+', '-', or '0'.
+    ///
+    /// Returns `CsdMultiplierError::LengthMismatch` if the CSD string length
+    /// doesn't equal `m + 1`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use csd::csd_multiplier::{CsdMultiplier, CsdMultiplierError};
+    ///
+    /// let multiplier = CsdMultiplier::new("+0-", 8, 2);
+    /// assert!(multiplier.is_ok());
+    /// ```
     pub fn new(csd: &str, n: usize, m: usize) -> Result<Self, CsdMultiplierError> {
         // Validate CSD string
         if !csd.chars().all(|c| matches!(c, '+' | '-' | '0')) {
@@ -95,7 +122,16 @@ impl CsdMultiplier {
         })
     }
 
-    /// Calculate the decimal value represented by the CSD string
+    /// Calculate the decimal value represented by the CSD string.
+    ///
+    /// Interprets the CSD pattern as a binary number where:
+    /// - '+' = +1
+    /// - '-' = -1
+    /// - '0' = 0
+    ///
+    /// # Returns
+    ///
+    /// The decimal value as i32.
     fn decimal_value(&self) -> i32 {
         self.csd.chars().fold(0, |acc, c| {
             let acc = acc << 1;
@@ -108,7 +144,24 @@ impl CsdMultiplier {
         })
     }
 
-    /// Generate the Verilog module code
+    /// Generate the Verilog module code.
+    ///
+    /// Creates a complete Verilog module that implements the CSD-based
+    /// constant multiplication using shifts and add/subtract operations.
+    ///
+    /// # Returns
+    ///
+    /// A String containing the Verilog code.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use csd::csd_multiplier::CsdMultiplier;
+    ///
+    /// let multiplier = CsdMultiplier::new("+0-", 8, 2).unwrap();
+    /// let verilog = multiplier.generate_verilog();
+    /// assert!(verilog.contains("module csd_multiplier"));
+    /// ```
     pub fn generate_verilog(&self) -> String {
         let mut output = String::new();
         self.generate_header(&mut output);
@@ -139,6 +192,10 @@ impl CsdMultiplier {
         .unwrap();
     }
 
+    /// Get the non-zero terms from the CSD pattern.
+    ///
+    /// Returns a vector of (power, sign) tuples for each non-zero digit in the CSD string.
+    /// The power indicates the shift amount (2^power), and sign is '+' or '-'.
     fn get_terms(&self) -> Vec<(usize, char)> {
         self.csd
             .chars()
