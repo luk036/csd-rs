@@ -3,6 +3,7 @@ name = "csd-rs"
 version = "0.1.3"
 authors = ["Wai-Shing Luk <luk036@gmail.com>"]
 edition = "2021"
+rust-version = "1.56"
 description = "Canonical Signed Digit Conversion in Rust"
 readme = "README.md"
 homepage = "https://luk036.github.io/csd-rs/"
