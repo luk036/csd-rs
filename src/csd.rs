@@ -1335,6 +1335,32 @@ mod tests {
     }
 
     #[test]
+    fn test_to_decimal_i_safe_empty_string() {
+        let result = to_decimal_i_safe("");
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), CsdError::EmptyString);
+    }
+
+    #[test]
+    fn test_to_decimal_i_safe_invalid_character() {
+        let result = to_decimal_i_safe("+00X00");
+        assert!(result.is_err());
+        if let CsdError::InvalidCharacter(c, pos) = result.unwrap_err() {
+            assert_eq!(c, 'X');
+            assert_eq!(pos, 3);
+        } else {
+            panic!("Expected InvalidCharacter error");
+        }
+    }
+
+    #[test]
+    fn test_to_decimal_i_safe_consecutive_nonzero() {
+        let result = to_decimal_i_safe("++00");
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), CsdError::ConsecutiveNonZero(1));
+    }
+
+    #[test]
     #[should_panic]
     fn test_to_decimal_i_invalid() {
         let _res = to_decimal_i("+00-00.00+");
@@ -1751,6 +1777,18 @@ mod tests {
     }
 
     #[test]
+    fn test_csd_builder_rounding_strategy_down() {
+        let builder = CsdBuilder::new(28.5).rounding_strategy(RoundingStrategy::Down);
+        assert_eq!(builder.value, 28.5);
+    }
+
+    #[test]
+    fn test_csd_builder_rounding_strategy_up() {
+        let builder = CsdBuilder::new(28.5).rounding_strategy(RoundingStrategy::Up);
+        assert_eq!(builder.value, 28.5);
+    }
+
+    #[test]
     fn test_csd_builder_build_simple() {
         let csd = CsdBuilder::new(28.5).places(4).build().unwrap();
         // Default places is 4, so result will have 4 fractional places
@@ -1825,15 +1863,15 @@ mod tests {
         assert!(msg.contains("32 bits"));
     }
 
-    // #[test]
-    // fn test_csd_error_display_precision_loss() {
-    //     let err = CsdError::PrecisionLoss {
-    //         input: 1.234_567_890_123_456_78,
-    //         actual: 1.234_567_890_123_456_7,
-    //     };
-    //     let msg = format!("{}", err);
-    //     assert!(msg.contains("Precision loss"));
-    // }
+    #[test]
+    fn test_csd_error_display_precision_loss() {
+        let err = CsdError::PrecisionLoss {
+            input: 1.234_567_890_123_456_7,
+            actual: 1.234_567_890_123_456_7,
+        };
+        let msg = format!("{}", err);
+        assert!(msg.contains("Precision loss"));
+    }
 
     #[test]
     fn test_csd_error_display_consecutive_non_zero() {

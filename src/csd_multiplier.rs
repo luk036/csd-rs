@@ -287,6 +287,29 @@ mod tests {
     }
 
     #[test]
+    fn test_decimal_value() {
+        let multiplier = CsdMultiplier::new("+", 8, 0).unwrap();
+        assert_eq!(multiplier.decimal_value(), 1);
+
+        let multiplier = CsdMultiplier::new("-", 8, 0).unwrap();
+        assert_eq!(multiplier.decimal_value(), -1);
+
+        let multiplier = CsdMultiplier::new("+0-", 8, 2).unwrap();
+        assert_eq!(multiplier.decimal_value(), 3);
+
+        let multiplier = CsdMultiplier::new("-0+", 8, 2).unwrap();
+        assert_eq!(multiplier.decimal_value(), -3);
+    }
+
+    #[test]
+    fn test_all_zeros_csd() {
+        let csd = "0000";
+        let multiplier = CsdMultiplier::new(csd, 8, 3).unwrap();
+        let verilog = multiplier.generate_verilog();
+        assert!(verilog.contains("assign result = 0;"));
+    }
+
+    #[test]
     fn test_invalid_csd_chars() {
         let csd = "+01-00+0+";
         let result = CsdMultiplier::new(csd, 8, 6);
