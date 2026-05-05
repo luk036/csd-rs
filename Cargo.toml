@@ -29,7 +29,7 @@ svgbobdoc = { version = "0.3", default-features = false }
 
 [dev-dependencies]
 quickcheck = "1"
-quickcheck_macros = "1.1.0"
+quickcheck_macros = "1.2.0"
 criterion = "0.7.0"
 serial_test = "3.0.0"
 # pprof = { version = "0.15.0", features = ["flamegraph"] }
