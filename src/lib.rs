@@ -40,7 +40,10 @@ pub use crate::csd::{
 };
 
 #[cfg(feature = "multiplier")]
-pub use crate::csd_multiplier::{CsdMultiplier, CsdMultiplierError};
+pub use crate::csd_multiplier::{
+    generate_csd_multiplier, generate_csd_multipliers, CsdMultiplier, CsdMultiplierError,
+    MultiplierSpec,
+};
 
 #[cfg(feature = "lcsre")]
 pub use crate::lcsre::longest_repeated_substring;

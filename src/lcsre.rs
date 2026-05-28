@@ -1,7 +1,7 @@
-/// Find the longest repeating non-overlapping substring in cstr
+/// Find the longest repeating non-overlapping substring in a string.
 ///
-/// The `longest_repeated_substring` function takes a string and returns the longest
-/// repeated non-overlapping substring in the string using dynamic programming.
+/// Uses dynamic programming with O(n) space (flat 2-row table) instead of O(n²),
+/// matching the optimized C++ implementation.
 ///
 /// Arguments:
 ///
@@ -26,41 +26,39 @@
 /// # Complexity
 ///
 /// Time complexity: O(n²) where n is the length of the input string
-/// Space complexity: O(n²) for the DP table
+/// Space complexity: O(n) — flat vector with 2 rows
 pub fn longest_repeated_substring(sv: &str) -> String {
     let chars: Vec<char> = sv.chars().collect();
     let n = chars.len();
-    let ndim = n + 1; // Dimension for the DP table (n+1 x n+1)
-    let mut lcsre = vec![vec![0usize; ndim]; ndim]; // DP table initialized with zeros
+    let ndim = n + 1; // dimension = n+1
+                      // Flat vector: 2 rows of ndim columns — O(n) space
+    let mut lcsre = vec![0usize; 2 * ndim];
 
-    let mut res_length = 0; // To store length of the longest found substring
+    let mut res_length = 0; // length of the longest found substring
+    let mut index = 0; // ending index of the result substring (1-based)
 
-    // Building table in bottom-up manner
-    let mut index = 0; // To store the starting index of the result substring
     for i in 1..ndim {
+        let cur_row = (i % 2) * ndim;
+        let prev_row = ((i - 1) % 2) * ndim;
         for j in i + 1..ndim {
-            // Check if characters match and the substring wouldn't overlap
-            // (j-i) > lcsre[i-1][j-1] ensures non-overlapping condition
-            if chars[i - 1] == chars[j - 1] && lcsre[i - 1][j - 1] < (j - i) {
-                lcsre[i][j] = lcsre[i - 1][j - 1] + 1; // Extend the length of the common substring
+            // (j - i) > lcsre[i-1][j-1] ensures non-overlapping
+            if chars[i - 1] == chars[j - 1] && lcsre[prev_row + j - 1] < (j - i) {
+                lcsre[cur_row + j] = lcsre[prev_row + j - 1] + 1;
 
-                // Update maximum length and starting index if we found a longer substring
-                if lcsre[i][j] > res_length {
-                    res_length = lcsre[i][j];
-                    index = i; // Store the ending index of the substring
+                if lcsre[cur_row + j] > res_length {
+                    res_length = lcsre[cur_row + j];
+                    index = i;
                 }
             } else {
-                lcsre[i][j] = 0; // Reset length if characters don't match
+                lcsre[cur_row + j] = 0;
             }
         }
     }
 
-    // Constructing the result substring if there's a non-empty result
     if res_length > 0 {
-        // Extract substring from (index - length) to index
         sv[index - res_length..index].to_string()
     } else {
-        "".to_string() // Return empty string if no repeated substring found
+        String::new()
     }
 }
 
