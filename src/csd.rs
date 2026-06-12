@@ -110,9 +110,7 @@ impl CsdBuilder {
     ///
     /// # Errors
     ///
-    /// Returns an error if:
-    /// - `max_non_zeros` is 0 but the value is non-zero
-    /// - `places` is negative
+    /// Returns an error if `max_non_zeros` is 0 but the value is non-zero.
     pub fn build(self) -> CsdResult<String> {
         let places = self.places.unwrap_or(4);
 
@@ -553,6 +551,53 @@ pub fn to_csd_i(decimal_value: i32) -> String {
     String::from_utf8(csd).unwrap()
 }
 
+/// Convert a CSD integer string to decimal i32 (with error handling).
+///
+/// This function validates the CSD string for consecutive non-zero digits
+/// and other validity constraints before conversion.
+///
+/// # Errors
+///
+/// Returns `CsdError::ConsecutiveNonZero` if two consecutive non-zero digits are found.
+/// Returns `CsdError::InvalidCharacter` if an invalid character is encountered.
+/// Returns `CsdError::EmptyString` if the input is empty.
+///
+/// # Examples
+///
+/// ```
+/// use csd::csd::to_decimal_i_safe;
+///
+/// assert_eq!(to_decimal_i_safe("+00-00").unwrap(), 28);
+/// assert!(to_decimal_i_safe("++00").is_err());
+/// ```
+pub fn to_decimal_i_safe(csd: &str) -> CsdResult<i32> {
+    if csd.is_empty() {
+        return Err(CsdError::EmptyString);
+    }
+
+    let mut result = 0i32;
+    let mut prev_was_nonzero = false;
+
+    for (i, c) in csd.chars().enumerate() {
+        let is_nonzero = matches!(c, '+' | '-');
+
+        if prev_was_nonzero && is_nonzero {
+            return Err(CsdError::ConsecutiveNonZero(i));
+        }
+
+        result = match c {
+            '0' => result << 1,
+            '+' => (result << 1) + 1,
+            '-' => (result << 1) - 1,
+            _ => return Err(CsdError::InvalidCharacter(c, i)),
+        };
+
+        prev_was_nonzero = is_nonzero;
+    }
+
+    Ok(result)
+}
+
 #[cfg_attr(docsrs, doc = svgbobdoc::transform!(
 /// Convert the CSD (Canonical Signed Digit) to a decimal integer
 ///
@@ -603,54 +648,6 @@ pub fn to_csd_i(decimal_value: i32) -> String {
 /// assert_eq!(to_decimal_i("0"), 0);
 /// ```
 ))]
-#[allow(dead_code)]
-/// Convert a CSD integer string to decimal i32 (with error handling).
-///
-/// This function validates the CSD string for consecutive non-zero digits
-/// and other validity constraints before conversion.
-///
-/// # Errors
-///
-/// Returns `CsdError::ConsecutiveNonZero` if two consecutive non-zero digits are found.
-/// Returns `CsdError::InvalidCharacter` if an invalid character is encountered.
-/// Returns `CsdError::EmptyString` if the input is empty.
-///
-/// # Examples
-///
-/// ```
-/// use csd::csd::to_decimal_i_safe;
-///
-/// assert_eq!(to_decimal_i_safe("+00-00").unwrap(), 28);
-/// assert!(to_decimal_i_safe("++00").is_err());
-/// ```
-pub fn to_decimal_i_safe(csd: &str) -> CsdResult<i32> {
-    if csd.is_empty() {
-        return Err(CsdError::EmptyString);
-    }
-
-    let mut result = 0i32;
-    let mut prev_was_nonzero = false;
-
-    for (i, c) in csd.chars().enumerate() {
-        let is_nonzero = matches!(c, '+' | '-');
-
-        if prev_was_nonzero && is_nonzero {
-            return Err(CsdError::ConsecutiveNonZero(i));
-        }
-
-        result = match c {
-            '0' => result << 1,
-            '+' => (result << 1) + 1,
-            '-' => (result << 1) - 1,
-            _ => return Err(CsdError::InvalidCharacter(c, i)),
-        };
-
-        prev_was_nonzero = is_nonzero;
-    }
-
-    Ok(result)
-}
-
 /// Convert a CSD integer string to decimal i32 (panicking version).
 ///
 /// This is a convenience function that panics on invalid input.
@@ -955,7 +952,7 @@ pub fn to_decimal_i_result(csd: &str) -> CsdResult<i32> {
 
 /// Convert the CSD (Canonical Signed Digit) to a decimal i64 with Result type
 ///
-/// Similar to `to_decimal_i64` but returns a `Result` type for better error handling.
+/// Similar to `to_decimal_i` but returns an `i64` value via a `Result` type for better error handling.
 ///
 /// # Errors
 ///
@@ -973,7 +970,7 @@ pub fn to_decimal_i64_result(csd: &str) -> CsdResult<i64> {
 
 /// Convert the CSD (Canonical Signed Digit) to a decimal i128 with Result type
 ///
-/// Similar to `to_decimal_i128` but returns a `Result` type for better error handling.
+/// Similar to `to_decimal_i` but returns an `i128` value via a `Result` type for better error handling.
 ///
 /// # Errors
 ///

@@ -1,13 +1,10 @@
-/**
- * Canonical Signed Digit (CSD) Functions
- *
- * Handles conversion between decimal numbers and CSD representation.
- * CSD uses: '+' for +1, '-' for -1, '0' for 0
- * Example: +00-00+000.0 or 0.+0000-00+
- *
- * Original author: Harnesser
- * License: GPL2
- */
+//! Canonical Signed Digit (CSD) CLI binary.
+//!
+//! Handles conversion between decimal numbers and CSD representation via command-line interface.
+//! CSD uses: '+' for +1, '-' for -1, '0' for 0
+//!
+//! Original author: Harnesser
+//! License: GPL2
 use csd::csd::{to_csd, to_csdnnz, to_decimal};
 
 /// CLI result type alias.
