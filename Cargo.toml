@@ -1,6 +1,6 @@
 [package]
 name = "csd-rs"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["Wai-Shing Luk <luk036@gmail.com>"]
 edition = "2021"
 rust-version = "1.66"
@@ -11,6 +11,9 @@ repository = "https://github.com/luk036/csd-rs"
 license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--html-in-header", "src/doc-header.html"]
 
 [lib]
 name = "csd"
