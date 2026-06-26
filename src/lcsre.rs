@@ -1,5 +1,7 @@
 /// Find the longest repeating non-overlapping substring in a string.
 ///
+/// $$ \text{LCSRe}\[i\]\[j\] = \begin{cases} \text{LCSRe}\[i-1\]\[j-1\] + 1 & \text{if } s_i = s_j \land j-i > \text{LCSRe}\[i-1\]\[j-1\] \\\\ 0 & \text{otherwise} \end{cases} $$
+///
 /// Uses dynamic programming with O(n) space (flat 2-row table) instead of O(n²),
 /// matching the optimized C++ implementation.
 ///

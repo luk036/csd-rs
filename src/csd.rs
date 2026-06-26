@@ -182,6 +182,8 @@ pub type CsdResult<T> = Result<T, CsdError>;
 #[cfg_attr(docsrs, doc = svgbobdoc::transform!(
 /// Find the highest power of two less than or equal to a given number
 ///
+/// $$ \text{hp2}(x) = 2^{\lfloor \log_2 x \rfloor} $$
+///
 /// The `highest_power_of_two_in` function calculates the highest power of two that is less than or
 /// equal to a given number. This is done through a bit manipulation technique that fills all bits
 /// below the most significant bit (MSB) with 1s, then shifts and XORs to isolate just the MSB.
@@ -343,6 +345,8 @@ pub const fn validate_csd_format(csd: &str) -> bool {
 #[cfg_attr(docsrs, doc = svgbobdoc::transform!(
 /// Convert to CSD (Canonical Signed Digit) String representation
 ///
+/// $$ v_{\text{CSD}} = \text{csd}(v, p) \quad \text{where each digit } d_i \in \{-1,0,+1\} $$
+///
 /// The `to_csd` function converts a given number to its Canonical Signed Digit (CSD) representation
 /// with a specified number of decimal places. CSD is a number system where each digit can be -1, 0, or +1
 /// (represented by '-', '0', '+'), and no two adjacent digits are non-zero.
@@ -470,6 +474,8 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
 #[cfg_attr(docsrs, doc = svgbobdoc::transform!(
 /// Convert to CSD (Canonical Signed Digit) String representation
 ///
+/// $$ \text{CSD}(n) = \sum_{i=0}^{m-1} d_i \cdot 2^{m-1-i}, \quad d_i \in \{-1,0,+1\} $$
+///
 /// The `to_csd_i` function converts an integer into a Canonical Signed Digit (CSD) representation.
 /// This version works with integers only and produces a CSD string without a decimal point.
 ///
@@ -553,6 +559,8 @@ pub fn to_csd_i(decimal_value: i32) -> String {
 
 /// Convert a CSD integer string to decimal i32 (with error handling).
 ///
+/// $$ \text{value} = \sum_{i=0}^{n-1} d_i \cdot 2^{n-1-i}, \quad d_i \in \{-1,0,+1\} $$
+///
 /// This function validates the CSD string for consecutive non-zero digits
 /// and other validity constraints before conversion.
 ///
@@ -600,6 +608,8 @@ pub fn to_decimal_i_safe(csd: &str) -> CsdResult<i32> {
 
 #[cfg_attr(docsrs, doc = svgbobdoc::transform!(
 /// Convert the CSD (Canonical Signed Digit) to a decimal integer
+///
+/// $$ \text{value} = \sum_{i=0}^{n-1} d_i \cdot 2^{n-1-i}, \quad d_i \in \{-1,0,+1\} $$
 ///
 /// The `to_decimal_i` function converts a CSD (Canonical Signed Digit) string to a decimal integer.
 /// This function processes the CSD string character by character, building up the decimal value
@@ -687,6 +697,8 @@ pub const fn to_decimal_i(csd: &str) -> i32 {
 
 /// Convert the integral part of a CSD string to decimal (with error handling).
 ///
+/// $$ \text{int} = \sum_{i=0}^{n-1} d_i \cdot 2^{n-1-i} \quad \text{for integral digits} $$
+///
 /// Processes only the integral part (before the decimal point) of a CSD string.
 /// Returns both the converted value and the position of the decimal point.
 ///
@@ -733,8 +745,10 @@ pub fn to_decimal_integral_safe(csd: &str) -> CsdResult<(i32, usize)> {
 
 /// Convert the fractional part of a CSD string to decimal (panicking version).
 ///
+/// $$ \text{frac} = \sum_{i=1}^{n} d_i \cdot 2^{-i}, \quad d_i \in \{-1,0,+1\} $$
+///
 /// This function processes only the fractional part (after the decimal point) of a CSD string.
-/// Each digit contributes half the value of the previous digit (2^-1, 2^-2, 2^-3, ...).
+/// Each digit contributes half the value of the previous digit ($2^{-1}$, $2^{-2}$, $2^{-3}$, ...).
 ///
 /// # Panics
 ///
@@ -768,6 +782,8 @@ pub fn to_decimal_fractional(csd: &str) -> f64 {
 }
 
 /// Convert the fractional part of a CSD string to decimal (with error handling).
+///
+/// $$ \text{frac} = \sum_{i=1}^{n} d_i \cdot 2^{-i}, \quad d_i \in \{-1,0,+1\} $$
 ///
 /// # Errors
 ///
@@ -804,6 +820,8 @@ pub fn to_decimal_fractional_safe(csd: &str) -> CsdResult<f64> {
 
 #[cfg_attr(docsrs, doc = svgbobdoc::transform!(
 /// Convert the CSD (Canonical Signed Digit) to a decimal
+///
+/// $$ \text{value} = \sum_{\text{int}} d_i \cdot 2^{p-i} + \sum_{\text{frac}} d_j \cdot 2^{-j} $$
 ///
 /// The `to_decimal` function converts a CSD (Canonical Signed Digit) string to a decimal number.
 /// This function handles both integral and fractional parts of the CSD representation.
@@ -857,6 +875,8 @@ pub fn to_decimal(csd: &str) -> f64 {
 }
 
 /// Convert a CSD string to decimal (with error handling).
+///
+/// $$ \text{value} = \text{to\_decimal\_integral}(\text{csd}) + \text{to\_decimal\_fractional}(\text{csd}) $$
 ///
 /// This function handles both integral and fractional parts of the CSD representation.
 ///
@@ -989,6 +1009,8 @@ pub fn to_decimal_i128_result(csd: &str) -> CsdResult<i128> {
 #[cfg_attr(docsrs, doc = svgbobdoc::transform!(
 /// Convert to CSD representation approximately with fixed number of non-zero
 ///
+/// $$ \tilde{v}_{\text{CSD}} \approx v \quad \text{with at most } k \text{ non-zero digits} $$
+///
 /// The `to_csdnnz` function converts a given number into a CSD (Canonic Signed Digit) representation
 /// approximately with a specified number of non-zero digits. This version limits the number of
 /// non-zero digits in the output representation.
@@ -1089,6 +1111,8 @@ pub fn to_csdnnz(decimal_value: f64, nnz: u32) -> String {
 
 /// Convert to CSD with limited non-zero digits (with error handling).
 ///
+/// $$ \tilde{v}_{\text{CSD}} \approx v \quad \text{with at most } k \text{ non-zero digits} $$
+///
 /// This function converts a decimal value to CSD representation while limiting
 /// the number of non-zero digits. This is useful for approximations in hardware
 /// where minimizing adders/subtractors is important.
@@ -1152,6 +1176,8 @@ pub fn to_csdnnz_safe(decimal_value: f64, nnz: u32) -> CsdResult<String> {
 }
 
 /// Convert to CSD representation with fixed number of non-zero for i64
+///
+/// $$ \tilde{n}_{\text{CSD}} \approx n \quad \text{with at most } k \text{ non-zero digits} $$
 ///
 /// The `to_csdnnz_i64` function converts an i64 into a CSD representation
 /// approximately with a specified number of non-zero digits.
@@ -1218,6 +1244,8 @@ pub fn to_csdnnz_i64(decimal_value: i64, nnz: u32) -> String {
 }
 
 /// Convert to CSD representation with fixed number of non-zero for i128
+///
+/// $$ \tilde{n}_{\text{CSD}} \approx n \quad \text{with at most } k \text{ non-zero digits} $$
 ///
 /// The `to_csdnnz_i128` function converts an i128 into a CSD representation
 /// approximately with a specified number of non-zero digits.
