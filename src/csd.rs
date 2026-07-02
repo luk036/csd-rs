@@ -369,6 +369,16 @@ pub const fn validate_csd_format(csd: &str) -> bool {
 ///         └────────── integer: 32s place (+)
 /// ```
 ///
+/// ```svgbob
+///  .───────────────.
+///  │ Decimal→CSD   │
+///  │               │
+///  │ Example:      │
+///  │ 7 → [1,0,0,-1]│
+///  │   = 8 - 1     │
+///  '───────────────'
+/// ```
+///
 /// - Original author: Harnesser
 /// - <https://sourceforge.net/projects/pycsd/>
 /// - License: GPL2

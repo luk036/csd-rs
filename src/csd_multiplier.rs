@@ -133,6 +133,10 @@ fn build_range_expr(csd_str: &str, start: usize, length: usize, max_power: usize
 }
 
 /// Compute output width from input_width and max_power.
+///
+/// $$ W_{\text{out}} = W_{\text{in}} + m $$
+///
+/// where $W_{\text{in}}$ is the input bit width and $m$ is the maximum power of two.
 fn output_width(input_width: usize, max_power: usize) -> usize {
     input_width + max_power
 }
@@ -172,6 +176,9 @@ impl CsdMultiplier {
     }
 
     /// Calculate the decimal value represented by the CSD string.
+    ///
+    /// $$ v = \sum_{i=0}^{m} d_i \cdot 2^{m-i}, \quad d_i \in \{-1,0,+1\} $$
+    ///
     fn decimal_value(&self) -> i32 {
         self.csd.chars().fold(0, |acc, c| {
             let acc = acc << 1;
@@ -451,7 +458,12 @@ fn find_cross_patterns(csd_list: &[String]) -> HashMap<String, Vec<(usize, usize
 ///
 /// Converts a Canonical Signed Digit (CSD) string into a synthesizable
 /// Verilog module that performs constant multiplication using shifts and
-/// additions/subtractions. When the CSD string contains a repeated
+/// additions/subtractions:
+///
+/// $$ y = \sum_{i=0}^{m} d_i \cdot (x \ll i), \quad d_i \in \{-1,0,+1\} $$
+///
+/// where $d_i$ is the CSD digit at position $i$, $x$ is the input, and
+/// $m$ is the highest power. When the CSD string contains a repeated
 /// non-overlapping pattern, LCSRe optimization shares hardware via a
 /// `_pat` wire.
 ///
@@ -643,6 +655,10 @@ pub fn generate_csd_multiplier(
 /// When the same CSD substring appears in multiple coefficients, a shared
 /// sub-expression wire is created — reducing total adder count across the
 /// entire filter.
+///
+/// For each coefficient $k$:
+///
+/// $$ y_k = \sum_{i=0}^{m} d_{k,i} \cdot (x \ll i), \quad d_{k,i} \in \{-1,0,+1\} $$
 ///
 /// All coefficients **must** share the same `input_width` and `max_power`
 /// so that the same bit position encodes the same power of two.
