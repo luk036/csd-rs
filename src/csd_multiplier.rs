@@ -90,12 +90,13 @@ fn parse_terms(
     max_power: usize,
 ) -> Result<Vec<(usize, TermOp)>, CsdMultiplierError> {
     let mut terms = Vec::new();
-    for (i, c) in csd_str.chars().enumerate() {
+    let bytes = csd_str.as_bytes();
+    for (i, &c) in bytes.iter().enumerate() {
         let power = max_power - i;
         match c {
-            '+' => terms.push((power, TermOp::Add)),
-            '-' => terms.push((power, TermOp::Sub)),
-            '0' => {}
+            b'+' => terms.push((power, TermOp::Add)),
+            b'-' => terms.push((power, TermOp::Sub)),
+            b'0' => {}
             _ => return Err(CsdMultiplierError::InvalidCharacter),
         }
     }
@@ -106,11 +107,12 @@ fn parse_terms(
 fn build_range_expr(csd_str: &str, start: usize, length: usize, max_power: usize) -> String {
     let mut expr = String::new();
     let mut first = true;
-    let end = start.saturating_add(length).min(csd_str.len());
-    for (i, c) in csd_str[start..end].char_indices() {
-        let power = max_power - (start + i);
+    let bytes = csd_str.as_bytes();
+    let end = start.saturating_add(length).min(bytes.len());
+    for (i, &c) in bytes.iter().enumerate().skip(start).take(end - start) {
+        let power = max_power - i;
         match c {
-            '+' => {
+            b'+' => {
                 if first {
                     write!(expr, "x_shift{}", power).unwrap();
                     first = false;
@@ -118,7 +120,7 @@ fn build_range_expr(csd_str: &str, start: usize, length: usize, max_power: usize
                     write!(expr, " + x_shift{}", power).unwrap();
                 }
             }
-            '-' => {
+            b'-' => {
                 if first {
                     write!(expr, "-x_shift{}", power).unwrap();
                     first = false;
@@ -162,7 +164,8 @@ impl CsdMultiplier {
     /// Returns `CsdMultiplierError::LengthMismatch` if the CSD string length
     /// doesn't equal `m + 1`.
     pub fn new(csd: &str, n: usize, m: usize) -> Result<Self, CsdMultiplierError> {
-        if !csd.chars().all(|c| matches!(c, '+' | '-' | '0')) {
+        let bytes = csd.as_bytes();
+        if !bytes.iter().all(|&c| matches!(c, b'+' | b'-' | b'0')) {
             return Err(CsdMultiplierError::InvalidCharacter);
         }
         if csd.len() != m + 1 {
@@ -180,12 +183,12 @@ impl CsdMultiplier {
     /// $$ v = \sum_{i=0}^{m} d_i \cdot 2^{m-i}, \quad d_i \in \{-1,0,+1\} $$
     ///
     fn decimal_value(&self) -> i32 {
-        self.csd.chars().fold(0, |acc, c| {
+        self.csd.as_bytes().iter().fold(0, |acc, &c| {
             let acc = acc << 1;
             match c {
-                '+' => acc + 1,
-                '-' => acc - 1,
-                '0' => acc,
+                b'+' => acc + 1,
+                b'-' => acc - 1,
+                b'0' => acc,
                 _ => unreachable!(),
             }
         })
@@ -377,7 +380,10 @@ fn find_pattern_occurrences(csd_str: &str, pattern: &str) -> Vec<usize> {
 
 /// Count non-zero digits ('+' or '-') in a CSD substring.
 fn count_nnz(s: &str) -> usize {
-    s.chars().filter(|c| *c == '+' || *c == '-').count()
+    s.as_bytes()
+        .iter()
+        .filter(|&&c| c == b'+' || c == b'-')
+        .count()
 }
 
 /// Build a coefficient expression using CSE wire + flat gap terms.
@@ -436,18 +442,25 @@ fn build_coeff_expr(
 fn find_cross_patterns(csd_list: &[String]) -> HashMap<String, Vec<(usize, usize)>> {
     let mut patterns: HashMap<String, Vec<(usize, usize)>> = HashMap::new();
     for (ci, csd) in csd_list.iter().enumerate() {
-        let n = csd.len();
+        let bytes = csd.as_bytes();
+        let n = bytes.len();
         for i in 0..n {
-            for j in (i + 2)..=n {
-                let sub: String = csd[i..j].to_string();
-                if count_nnz(&sub) >= 2 {
-                    patterns.entry(sub).or_default().push((ci, i));
+            // Reusable buffer per start position, extended incrementally
+            let mut sub = String::with_capacity(n - i);
+            let mut nnz = 0u32;
+            for (j, &c) in bytes.iter().enumerate().skip(i) {
+                sub.push(c as char);
+                if c == b'+' || c == b'-' {
+                    nnz += 1;
+                }
+                if j - i + 1 >= 2 && nnz >= 2 {
+                    patterns.entry(sub.clone()).or_default().push((ci, i));
                 }
             }
         }
     }
     // Keep only patterns crossing >= 2 different CSD strings
-    patterns.retain(|_, occ: &mut Vec<(usize, usize)>| {
+    patterns.retain(|_, occ| {
         let unique: HashSet<usize> = occ.iter().map(|(ci, _)| *ci).collect();
         unique.len() >= 2
     });
@@ -497,8 +510,8 @@ pub fn generate_csd_multiplier(
     if len != max_power + 1 {
         return Err(CsdMultiplierError::LengthMismatch);
     }
-    for c in csd_str.chars() {
-        if c != '+' && c != '-' && c != '0' {
+    for &c in csd_str.as_bytes() {
+        if c != b'+' && c != b'-' && c != b'0' {
             return Err(CsdMultiplierError::InvalidCharacter);
         }
     }

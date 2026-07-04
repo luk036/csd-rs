@@ -30,21 +30,19 @@
 /// Time complexity: O(n²) where n is the length of the input string
 /// Space complexity: O(n) — flat vector with 2 rows
 pub fn longest_repeated_substring(sv: &str) -> String {
-    let chars: Vec<char> = sv.chars().collect();
-    let n = chars.len();
-    let ndim = n + 1; // dimension = n+1
-                      // Flat vector: 2 rows of ndim columns — O(n) space
+    let bytes = sv.as_bytes();
+    let n = bytes.len();
+    let ndim = n + 1;
     let mut lcsre = vec![0usize; 2 * ndim];
 
-    let mut res_length = 0; // length of the longest found substring
-    let mut index = 0; // ending index of the result substring (1-based)
+    let mut res_length = 0;
+    let mut index = 0;
 
     for i in 1..ndim {
         let cur_row = (i % 2) * ndim;
         let prev_row = ((i - 1) % 2) * ndim;
         for j in i + 1..ndim {
-            // (j - i) > lcsre[i-1][j-1] ensures non-overlapping
-            if chars[i - 1] == chars[j - 1] && lcsre[prev_row + j - 1] < (j - i) {
+            if bytes[i - 1] == bytes[j - 1] && lcsre[prev_row + j - 1] < (j - i) {
                 lcsre[cur_row + j] = lcsre[prev_row + j - 1] + 1;
 
                 if lcsre[cur_row + j] > res_length {

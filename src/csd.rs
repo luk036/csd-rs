@@ -418,7 +418,7 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
             for _ in 0..places {
                 buf.push(b'0');
             }
-            String::from_utf8(buf.clone()).unwrap()
+            String::from_utf8(std::mem::take(buf)).unwrap()
         });
     }
 
@@ -477,7 +477,7 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
             frac_places -= 1;
         }
 
-        String::from_utf8(buf.clone()).unwrap()
+        String::from_utf8(std::mem::take(buf)).unwrap()
     })
 }
 
@@ -595,19 +595,20 @@ pub fn to_decimal_i_safe(csd: &str) -> CsdResult<i32> {
 
     let mut result = 0i32;
     let mut prev_was_nonzero = false;
+    let bytes = csd.as_bytes();
 
-    for (i, c) in csd.chars().enumerate() {
-        let is_nonzero = matches!(c, '+' | '-');
+    for (i, &c) in bytes.iter().enumerate() {
+        let is_nonzero = matches!(c, b'+' | b'-');
 
         if prev_was_nonzero && is_nonzero {
             return Err(CsdError::ConsecutiveNonZero(i));
         }
 
         result = match c {
-            '0' => result << 1,
-            '+' => (result << 1) + 1,
-            '-' => (result << 1) - 1,
-            _ => return Err(CsdError::InvalidCharacter(c, i)),
+            b'0' => result << 1,
+            b'+' => (result << 1) + 1,
+            b'-' => (result << 1) - 1,
+            _ => return Err(CsdError::InvalidCharacter(c as char, i)),
         };
 
         prev_was_nonzero = is_nonzero;
@@ -729,22 +730,23 @@ pub const fn to_decimal_i(csd: &str) -> i32 {
 pub fn to_decimal_integral_safe(csd: &str) -> CsdResult<(i32, usize)> {
     let mut decimal_value: i32 = 0;
     let mut prev_was_nonzero = false;
+    let bytes = csd.as_bytes();
 
-    for (pos, digit) in csd.chars().enumerate() {
-        let is_nonzero = matches!(digit, '+' | '-');
+    for (pos, &digit) in bytes.iter().enumerate() {
+        let is_nonzero = matches!(digit, b'+' | b'-');
 
         if prev_was_nonzero && is_nonzero {
             return Err(CsdError::ConsecutiveNonZero(pos));
         }
 
         match digit {
-            '0' => decimal_value <<= 1,
-            '+' => decimal_value = (decimal_value << 1) + 1,
-            '-' => decimal_value = (decimal_value << 1) - 1,
-            '.' => {
+            b'0' => decimal_value <<= 1,
+            b'+' => decimal_value = (decimal_value << 1) + 1,
+            b'-' => decimal_value = (decimal_value << 1) - 1,
+            b'.' => {
                 return Ok((decimal_value, pos + 1));
             }
-            _ => return Err(CsdError::InvalidCharacter(digit, pos)),
+            _ => return Err(CsdError::InvalidCharacter(digit as char, pos)),
         }
 
         prev_was_nonzero = is_nonzero;
@@ -777,12 +779,13 @@ pub fn to_decimal_integral_safe(csd: &str) -> CsdResult<(i32, usize)> {
 pub fn to_decimal_fractional(csd: &str) -> f64 {
     let mut decimal_value = 0.0;
     let mut scale = 0.5;
+    let bytes = csd.as_bytes();
 
-    for digit in csd.chars() {
+    for &digit in bytes {
         match digit {
-            '0' => {}
-            '+' => decimal_value += scale,
-            '-' => decimal_value -= scale,
+            b'0' => {}
+            b'+' => decimal_value += scale,
+            b'-' => decimal_value -= scale,
             _ => panic!("Fractional part works with 0, +, and - only"),
         }
         scale /= 2.0;
@@ -815,13 +818,14 @@ pub fn to_decimal_fractional_safe(csd: &str) -> CsdResult<f64> {
 
     let mut decimal_value = 0.0;
     let mut scale = 0.5;
+    let bytes = csd.as_bytes();
 
-    for (pos, digit) in csd.chars().enumerate() {
+    for (pos, &digit) in bytes.iter().enumerate() {
         match digit {
-            '0' => {}
-            '+' => decimal_value += scale,
-            '-' => decimal_value -= scale,
-            _ => return Err(CsdError::InvalidCharacter(digit, pos)),
+            b'0' => {}
+            b'+' => decimal_value += scale,
+            b'-' => decimal_value -= scale,
+            _ => return Err(CsdError::InvalidCharacter(digit as char, pos)),
         }
         scale /= 2.0;
     }
@@ -937,13 +941,15 @@ pub fn to_decimal_safe(csd: &str) -> CsdResult<f64> {
 /// assert!(to_decimal_result("+00X-00").is_err());
 /// ```
 pub fn to_decimal_result(csd: &str) -> CsdResult<f64> {
+    let bytes = csd.as_bytes();
     // Validate characters first
-    for (i, c) in csd.chars().enumerate() {
-        if !matches!(c, '+' | '-' | '0' | '.') {
-            return Err(CsdError::InvalidCharacter(c, 0));
+    for i in 0..bytes.len() {
+        let c = bytes[i];
+        if !matches!(c, b'+' | b'-' | b'0' | b'.') {
+            return Err(CsdError::InvalidCharacter(c as char, 0));
         }
         // Check for multiple decimal points
-        if c == '.' && csd.chars().skip(i + 1).any(|c| c == '.') {
+        if c == b'.' && bytes[i + 1..].contains(&b'.') {
             return Err(CsdError::InvalidFormat(
                 "Multiple decimal points".to_string(),
             ));
@@ -970,10 +976,10 @@ pub fn to_decimal_result(csd: &str) -> CsdResult<f64> {
 /// assert!(to_decimal_i_result("+00X-00").is_err());
 /// ```
 pub fn to_decimal_i_result(csd: &str) -> CsdResult<i32> {
-    // Validate characters first
-    for c in csd.chars() {
-        if !matches!(c, '+' | '-' | '0') {
-            return Err(CsdError::InvalidCharacter(c, 0));
+    let bytes = csd.as_bytes();
+    for &c in bytes {
+        if !matches!(c, b'+' | b'-' | b'0') {
+            return Err(CsdError::InvalidCharacter(c as char, 0));
         }
     }
 
@@ -988,10 +994,10 @@ pub fn to_decimal_i_result(csd: &str) -> CsdResult<i32> {
 ///
 /// Returns `CsdError::InvalidCharacter` if the CSD string contains invalid characters.
 pub fn to_decimal_i64_result(csd: &str) -> CsdResult<i64> {
-    // Validate characters first
-    for c in csd.chars() {
-        if !matches!(c, '+' | '-' | '0') {
-            return Err(CsdError::InvalidCharacter(c, 0));
+    let bytes = csd.as_bytes();
+    for &c in bytes {
+        if !matches!(c, b'+' | b'-' | b'0') {
+            return Err(CsdError::InvalidCharacter(c as char, 0));
         }
     }
 
@@ -1006,10 +1012,10 @@ pub fn to_decimal_i64_result(csd: &str) -> CsdResult<i64> {
 ///
 /// Returns `CsdError::InvalidCharacter` if the CSD string contains invalid characters.
 pub fn to_decimal_i128_result(csd: &str) -> CsdResult<i128> {
-    // Validate characters first
-    for c in csd.chars() {
-        if !matches!(c, '+' | '-' | '0') {
-            return Err(CsdError::InvalidCharacter(c, 0));
+    let bytes = csd.as_bytes();
+    for &c in bytes {
+        if !matches!(c, b'+' | b'-' | b'0') {
+            return Err(CsdError::InvalidCharacter(c as char, 0));
         }
     }
 
@@ -1080,12 +1086,16 @@ pub fn to_decimal_i128_result(csd: &str) -> CsdResult<i128> {
 pub fn to_csdnnz(decimal_value: f64, nnz: u32) -> String {
     let absnum = decimal_value.abs();
     let (mut rem, mut csd) = if absnum < 1.0 {
-        (0, "0".to_string())
+        let mut s = String::with_capacity(2 + nnz as usize);
+        s.push('0');
+        (0, s)
     } else {
         #[allow(clippy::cast_possible_truncation)]
         let rem = (absnum * 1.5).log2().ceil() as i32;
-        (rem, String::new())
+        let capacity = (rem.unsigned_abs() as usize) + 1 + (nnz as usize);
+        (rem, String::with_capacity(capacity))
     };
+
     let mut p2n = 2.0_f64.powi(rem);
     let mut decimal_value = decimal_value;
     let mut nnz = nnz;
@@ -1149,12 +1159,16 @@ pub fn to_csdnnz_safe(decimal_value: f64, nnz: u32) -> CsdResult<String> {
 
     let absnum = decimal_value.abs();
     let (mut rem, mut csd) = if absnum < 1.0 {
-        (0, "0".to_string())
+        let mut s = String::with_capacity(2 + nnz as usize);
+        s.push('0');
+        (0, s)
     } else {
         #[allow(clippy::cast_possible_truncation)]
         let rem = (absnum * 1.5).log2().ceil() as i32;
-        (rem, String::new())
+        let capacity = (rem.unsigned_abs() as usize) + 1 + (nnz as usize);
+        (rem, String::with_capacity(capacity))
     };
+
     let mut p2n = 2.0_f64.powi(rem);
     let mut decimal_value = decimal_value;
     let mut nnz = nnz;
