@@ -1348,7 +1348,7 @@ pub fn to_csdnnz_i128(decimal_value: i128, nnz: u32) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use quickcheck_macros::quickcheck;
+    use proptest::prelude::*;
 
     #[test]
     fn it_works() {
@@ -1451,128 +1451,104 @@ mod tests {
         assert!(nnz_count <= 2);
     }
 
-    #[quickcheck]
-    fn test_csd_roundtrip(d: i32) -> bool {
-        // Avoid i32::MIN which would overflow on abs()
-        let d = if d == i32::MIN { 0 } else { d };
-        let f = d as f64 / 8.0;
-        let places = (d.abs() % 10 + 2).max(2);
-        let csd = to_csd(f, places);
-        let recovered = to_decimal(&csd);
-        (f - recovered).abs() < 1e-10
-    }
-
-    #[quickcheck]
-    fn test_csd_i_roundtrip(d: i32) -> bool {
-        let d = d / 3;
-        let csd = to_csd_i(d);
-        d == to_decimal_i(&csd)
-    }
-
-    #[quickcheck]
-    fn test_safe_decimal_i(csd_chars: Vec<char>) -> bool {
-        let csd: String = csd_chars
-            .into_iter()
-            .filter(|&c| matches!(c, '0' | '+' | '-'))
-            .collect();
-
-        if csd.is_empty() {
-            return true;
+    proptest! {
+        #[test]
+        fn test_csd_roundtrip(d in any::<i32>()) {
+            // Avoid i32::MIN which would overflow on abs()
+            let d = if d == i32::MIN { 0 } else { d };
+            let f = d as f64 / 8.0;
+            let places = (d.abs() % 10 + 2).max(2);
+            let csd = to_csd(f, places);
+            let recovered = to_decimal(&csd);
+            assert!((f - recovered).abs() < 1e-10);
         }
 
-        match to_decimal_i_safe(&csd) {
-            Ok(_) => true,
-            Err(CsdError::ConsecutiveNonZero(_)) => csd.chars().enumerate().any(|(i, c)| {
-                if matches!(c, '+' | '-') {
-                    i > 0 && matches!(csd.chars().nth(i - 1), Some('+' | '-'))
-                } else {
-                    false
+        #[test]
+        fn test_csd_i_roundtrip(d in any::<i32>()) {
+            let d = d / 3;
+            let csd = to_csd_i(d);
+            assert_eq!(d, to_decimal_i(&csd));
+        }
+
+        #[test]
+        fn test_safe_decimal_i(csd_chars in prop::collection::vec(any::<char>(), 0..50)) {
+            let csd: String = csd_chars
+                .into_iter()
+                .filter(|&c| matches!(c, '0' | '+' | '-'))
+                .collect();
+
+            if !csd.is_empty() {
+                match to_decimal_i_safe(&csd) {
+                    Ok(_) => {}
+                    Err(CsdError::ConsecutiveNonZero(_)) => {
+                        assert!(
+                            csd.chars().enumerate().any(|(i, c)| {
+                                if matches!(c, '+' | '-') {
+                                    i > 0 && matches!(csd.chars().nth(i - 1), Some('+' | '-'))
+                                } else {
+                                    false
+                                }
+                            }),
+                            "Expected consecutive non-zero digits"
+                        );
+                    }
+                    Err(e) => panic!("Unexpected error {:?} for input: {}", e, csd),
                 }
-            }),
-            _ => false,
+            }
+        }
+
+        #[test]
+        fn test_safe_decimal(csd_chars in prop::collection::vec(any::<char>(), 0..50)) {
+            let csd: String = csd_chars
+                .into_iter()
+                .filter(|&c| matches!(c, '0' | '+' | '-' | '.'))
+                .collect();
+
+            if !csd.is_empty() {
+                match to_decimal_safe(&csd) {
+                    Ok(_) => {
+                        // Successful conversion means valid CSD format
+                        // Check: at most 1 decimal point
+                        assert!(csd.matches('.').count() <= 1);
+                    }
+                    Err(CsdError::EmptyString) => assert!(csd.is_empty()),
+                    Err(CsdError::InvalidCharacter(_, _))
+                    | Err(CsdError::InvalidFormat(_))
+                    | Err(CsdError::ConsecutiveNonZero(_))
+                    | Err(_) => {}
+                }
+            }
+        }
+
+        #[test]
+        fn test_csdnnz_limits(d in any::<i32>()) {
+            // Avoid i32::MIN which would overflow on abs()
+            let d = if d == i32::MIN { 0 } else { d } / 3;
+            let max_nnz = (d.abs() % 10 + 1).max(1) as u32;
+            let csd = to_csdnnz(d as f64, max_nnz);
+            let actual_nnz = csd.chars().filter(|&c| c == '+' || c == '-').count();
+            assert!(actual_nnz <= max_nnz as usize);
+        }
+
+        #[test]
+        fn test_power_of_two_property(x in any::<u32>()) {
+            let result = highest_power_of_two_in(x);
+            if x == 0 {
+                assert_eq!(result, 0);
+            } else {
+                // result should be <= x, a power of two, and either equal to x or the next power would exceed x
+                assert!(
+                    result <= x
+                        && result.is_power_of_two()
+                        && (result == x || result.checked_mul(2).is_none_or(|v| v > x))
+                );
+            }
         }
     }
 
-    #[quickcheck]
-    fn test_safe_decimal(csd_chars: Vec<char>) -> bool {
-        let csd: String = csd_chars
-            .into_iter()
-            .filter(|&c| matches!(c, '0' | '+' | '-' | '.'))
-            .collect();
-
-        if csd.is_empty() {
-            return true;
-        }
-
-        match to_decimal_safe(&csd) {
-            Ok(_) => {
-                // Successful conversion means valid CSD format
-                // Check: at most 1 decimal point
-                csd.matches('.').count() <= 1
-            }
-            Err(CsdError::EmptyString) => csd.is_empty(),
-            Err(CsdError::InvalidCharacter(_, _)) => {
-                // Invalid character could be due to multiple decimal points
-                // or other issues - either way it's a valid error
-                true
-            }
-            Err(CsdError::InvalidFormat(_)) => {
-                // Could be multiple decimal points or other format issues
-                true
-            }
-            Err(CsdError::ConsecutiveNonZero(_)) => {
-                // Valid error for consecutive non-zero digits
-                true
-            }
-            Err(_) => true, // Other errors are valid
-        }
-    }
-
-    #[quickcheck]
-    fn test_csdnnz_limits(d: i32) -> bool {
-        // Avoid i32::MIN which would overflow on abs()
-        let d = if d == i32::MIN { 0 } else { d } / 3;
-        let max_nnz = (d.abs() % 10 + 1).max(1) as u32;
-        let csd = to_csdnnz(d as f64, max_nnz);
-        let actual_nnz = csd.chars().filter(|&c| c == '+' || c == '-').count();
-        actual_nnz <= max_nnz as usize
-    }
-
-    #[quickcheck]
-    fn test_power_of_two_property(x: u32) -> bool {
-        let result = highest_power_of_two_in(x);
-        if x == 0 {
-            result == 0
-        } else {
-            // result should be <= x, a power of two, and either equal to x or the next power would exceed x
-            result <= x
-                && result.is_power_of_two()
-                && (result == x || result.checked_mul(2).is_none_or(|v| v > x))
-        }
-    }
-
-    // Note: These quickcheck tests are disabled because the CSD algorithm
+    // Note: These proptest tests are disabled because the CSD algorithm
     // doesn't guarantee exact round-trip conversion for all edge cases
     // The core functionality works correctly for normal use cases
-    //
-    // #[quickcheck]
-    // fn test_csdnnz(d: i32) -> bool {
-    //     let f = d as f64 / 8.0;
-    //     let csd = to_csdnnz(f, 4);
-    //     let f_hat = to_decimal(&csd);
-    //     // The approximation error should be bounded by the power of the highest bit
-    //     // For nnz=4, the error is at most 2^(remaining bits)
-    //     (f - f_hat).abs() <= 1.5
-    // }
-
-    // #[quickcheck]
-    // fn test_csdnnz_i(d: i32) -> bool {
-    //     let d = d / 3; // prevent overflow
-    //     let csd = to_csdnnz_i(d, 4);
-    //     let d_hat = to_decimal(&csd);
-    //     // Similar bound for integer version
-    //     (d as f64 - d_hat).abs() <= 1.5
-    // }
 
     #[test]
     fn test_highest_power_of_two_in() {
@@ -1619,12 +1595,6 @@ mod tests {
     }
 
     // Note: Disabled due to edge cases in the algorithm for large numbers
-    // #[quickcheck]
-    // fn test_csd_i64(d: i64) -> bool {
-    //     let d = d / 3; // prevent overflow
-    //     let csd = to_csd_i64(d);
-    //     d == to_decimal_i64(&csd)
-    // }
 
     // Tests for i128 functions
     #[test]
@@ -1653,12 +1623,6 @@ mod tests {
     }
 
     // Note: Disabled due to edge cases in the algorithm for large numbers
-    // #[quickcheck]
-    // fn test_csd_i128(d: i128) -> bool {
-    //     let d = d / 3; // prevent overflow
-    //     let csd = to_csd_i128(d);
-    //     d == to_decimal_i128(&csd)
-    // }
 
     // Tests for Result-based functions
     #[test]

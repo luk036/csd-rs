@@ -29,8 +29,7 @@ log = { version = "0.4.32", optional = true }
 svgbobdoc = { version = "0.3", default-features = false }
 
 [dev-dependencies]
-quickcheck = "1.1.0"
-quickcheck_macros = "1.2.0"
+proptest = "1"
 criterion = "0.8.2"
 serial_test = "3.5.0"
 

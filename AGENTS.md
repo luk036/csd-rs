@@ -128,7 +128,7 @@ pub fn to_decimal_result(csd: &str) -> CsdResult<f64> { ... }
 
 - Unit tests: `#[cfg(test)]` modules within each source file
 - Integration tests: `tests/` directory (e.g., `tests/cli_tests.rs`)
-- Use `quickcheck` for property-based testing
+- Use `proptest` for property-based testing
 - Include edge cases: zero, negative, very large/small numbers
 - Test round-trip conversions: decimal → CSD → decimal
 
