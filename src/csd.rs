@@ -534,19 +534,17 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
 ///
 /// Panics if the resulting CSD string is not valid UTF-8.
 ))]
-#[allow(dead_code)]
 #[must_use]
 pub fn to_csd_i(decimal_value: i32) -> String {
     if decimal_value == 0 {
         return "0".to_string();
     }
 
-    // Calculate the highest power of two needed
     #[allow(clippy::cast_sign_loss)]
     let temp = (decimal_value.abs() * 3 / 2) as u32;
     #[allow(clippy::cast_possible_wrap)]
     let mut p2n = highest_power_of_two_in(temp) as i32 * 2;
-    let mut csd = Vec::with_capacity(32); // Max 32 chars for i32
+    let mut csd = Vec::with_capacity(32);
     let mut decimal_value = decimal_value;
 
     while p2n > 1 {
@@ -686,7 +684,6 @@ pub fn to_decimal_i_safe(csd: &str) -> CsdResult<i32> {
 /// assert_eq!(to_decimal_i("+00-00"), 28);
 /// assert_eq!(to_decimal_i("0"), 0);
 /// ```
-#[allow(dead_code)]
 #[must_use]
 pub const fn to_decimal_i(csd: &str) -> i32 {
     let mut result = 0i32;
@@ -912,14 +909,12 @@ pub fn to_decimal_safe(csd: &str) -> CsdResult<f64> {
         return Err(CsdError::EmptyString);
     }
 
-    // First convert the integral part
     let (integral, loc) = to_decimal_integral_safe(csd)?;
 
     if loc == 0 {
         return Ok(f64::from(integral));
     }
 
-    // Then convert the fractional part if present
     let fractional = to_decimal_fractional_safe(&csd[loc..])?;
     Ok(f64::from(integral) + fractional)
 }
@@ -942,13 +937,11 @@ pub fn to_decimal_safe(csd: &str) -> CsdResult<f64> {
 /// ```
 pub fn to_decimal_result(csd: &str) -> CsdResult<f64> {
     let bytes = csd.as_bytes();
-    // Validate characters first
     for i in 0..bytes.len() {
         let c = bytes[i];
         if !matches!(c, b'+' | b'-' | b'0' | b'.') {
             return Err(CsdError::InvalidCharacter(c as char, 0));
         }
-        // Check for multiple decimal points
         if c == b'.' && bytes[i + 1..].contains(&b'.') {
             return Err(CsdError::InvalidFormat(
                 "Multiple decimal points".to_string(),
@@ -1081,7 +1074,6 @@ pub fn to_decimal_i128_result(csd: &str) -> CsdResult<i128> {
 /// assert_eq!(to_csdnnz(28.5, 1), "+00000".to_string());
 /// ```
 ))]
-#[allow(dead_code)]
 #[must_use]
 pub fn to_csdnnz(decimal_value: f64, nnz: u32) -> String {
     let absnum = decimal_value.abs();
@@ -1119,9 +1111,7 @@ pub fn to_csdnnz(decimal_value: f64, nnz: u32) -> String {
         } else {
             csd.push('0');
         }
-        // Stop processing if we've used all non-zero digits
         if nnz == 0 && rem < 0 {
-            // We've processed all integer bits, stop
             break;
         }
     }
@@ -1255,7 +1245,6 @@ pub fn to_csdnnz_i64(decimal_value: i64, nnz: u32) -> String {
             csd.push('0');
         }
         if nnz == 0 {
-            // Add remaining zeros to complete the CSD string
             while p2n > 1 {
                 csd.push('0');
                 p2n >>= 1;
@@ -1333,7 +1322,6 @@ pub fn to_csdnnz_i128(decimal_value: i128, nnz: u32) -> String {
             csd.push('0');
         }
         if nnz == 0 {
-            // Add remaining zeros to complete the CSD string
             while p2n > 1 {
                 csd.push('0');
                 p2n >>= 1;
@@ -1349,12 +1337,6 @@ pub fn to_csdnnz_i128(decimal_value: i128, nnz: u32) -> String {
 mod tests {
     use super::*;
     use proptest::prelude::*;
-
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
 
     #[test]
     fn test_to_csd() {
@@ -1417,7 +1399,6 @@ mod tests {
 
     #[test]
     fn test_to_csdnnz() {
-        // Check that the result has at most the specified number of non-zero digits
         let result = to_csdnnz(28.5, 4);
         let nnz_count = result.chars().filter(|c| *c == '+' || *c == '-').count();
         assert!(nnz_count <= 4);
@@ -1428,7 +1409,6 @@ mod tests {
         assert_eq!(to_csdnnz(0.5, 4), "0.+".to_string());
         assert_eq!(to_csdnnz(-0.5, 4), "0.-".to_string());
 
-        // Check that with 1 non-zero digit, we get at most 1 non-zero
         let result = to_csdnnz(28.5, 1);
         let nnz_count = result.chars().filter(|c| *c == '+' || *c == '-').count();
         assert!(nnz_count <= 1);
@@ -1436,7 +1416,6 @@ mod tests {
 
     #[test]
     fn test_to_csdnnz_i() {
-        // Check that the result has at most the specified number of non-zero digits
         let csd = to_csdnnz_i(28, 4);
         let nnz_count = csd.chars().filter(|c| *c == '+' || *c == '-').count();
         assert!(nnz_count <= 4);
@@ -1445,7 +1424,6 @@ mod tests {
         assert_eq!(to_csdnnz_i(0, 4), "0".to_string());
         assert_eq!(to_csdnnz_i(0, 0), "0".to_string());
 
-        // Check that with 2 non-zero digits, we get at most 2 non-zeros
         let csd2 = to_csdnnz_i(158, 2);
         let nnz_count = csd2.chars().filter(|c| *c == '+' || *c == '-').count();
         assert!(nnz_count <= 2);
@@ -1561,10 +1539,8 @@ mod tests {
         assert_eq!(highest_power_of_two_in(u32::MAX), 2147483648);
     }
 
-    // Tests for i64 functions
     #[test]
     fn test_to_csd_i64() {
-        // Check round-trip conversion
         let csd = to_csd_i64(28);
         assert_eq!(to_decimal_i64(&csd), 28);
         assert_eq!(to_csd_i64(0), "0".to_string());
@@ -1581,14 +1557,12 @@ mod tests {
 
     #[test]
     fn test_to_csdnnz_i64() {
-        // Check that the result has at most the specified number of non-zero digits
         let csd = to_csdnnz_i64(28, 4);
         let nnz_count = csd.chars().filter(|c| *c == '+' || *c == '-').count();
         assert!(nnz_count <= 4);
 
         assert_eq!(to_csdnnz_i64(0, 4), "0".to_string());
 
-        // Check that with 2 non-zero digits, we get at most 2 non-zeros
         let csd2 = to_csdnnz_i64(158, 2);
         let nnz_count = csd2.chars().filter(|c| *c == '+' || *c == '-').count();
         assert!(nnz_count <= 2);
@@ -1596,10 +1570,8 @@ mod tests {
 
     // Note: Disabled due to edge cases in the algorithm for large numbers
 
-    // Tests for i128 functions
     #[test]
     fn test_to_csd_i128() {
-        // Check round-trip conversion
         let csd = to_csd_i128(28);
         assert_eq!(to_decimal_i128(&csd), 28);
         assert_eq!(to_csd_i128(0), "0".to_string());
@@ -1609,14 +1581,12 @@ mod tests {
 
     #[test]
     fn test_to_csdnnz_i128() {
-        // Check that the result has at most the specified number of non-zero digits
         let csd = to_csdnnz_i128(28, 4);
         let nnz_count = csd.chars().filter(|c| *c == '+' || *c == '-').count();
         assert!(nnz_count <= 4);
 
         assert_eq!(to_csdnnz_i128(0, 4), "0".to_string());
 
-        // Check that with 2 non-zero digits, we get at most 2 non-zeros
         let csd2 = to_csdnnz_i128(158, 2);
         let nnz_count = csd2.chars().filter(|c| *c == '+' || *c == '-').count();
         assert!(nnz_count <= 2);
@@ -1624,7 +1594,6 @@ mod tests {
 
     // Note: Disabled due to edge cases in the algorithm for large numbers
 
-    // Tests for Result-based functions
     #[test]
     fn test_to_decimal_result() {
         assert_eq!(to_decimal_result("+00-00.+").unwrap(), 28.5);
@@ -1675,7 +1644,6 @@ mod tests {
         result
     }
 
-    #[allow(dead_code)]
     #[must_use]
     pub fn to_csd_i64(decimal_value: i64) -> String {
         if decimal_value == 0 {
@@ -1707,7 +1675,6 @@ mod tests {
         String::from_utf8(csd).unwrap()
     }
 
-    #[allow(dead_code)]
     #[must_use]
     pub fn to_csd_i128(decimal_value: i128) -> String {
         if decimal_value == 0 {
@@ -1739,25 +1706,21 @@ mod tests {
         String::from_utf8(csd).unwrap()
     }
 
-    #[allow(dead_code)]
     #[must_use]
     pub fn to_csdnnz_i(decimal_value: i32, nnz: u32) -> String {
         to_csdnnz(decimal_value as f64, nnz)
     }
 
-    #[allow(dead_code)]
     #[must_use]
     pub fn to_csdnnz_i64(decimal_value: i64, nnz: u32) -> String {
         to_csdnnz(decimal_value as f64, nnz)
     }
 
-    #[allow(dead_code)]
     #[must_use]
     pub fn to_csdnnz_i128(decimal_value: i128, nnz: u32) -> String {
         to_csdnnz(decimal_value as f64, nnz)
     }
 
-    // Tests for CsdBuilder
     #[test]
     fn test_csd_builder_new() {
         let builder = CsdBuilder::new(28.5);
@@ -1771,7 +1734,6 @@ mod tests {
         let builder = CsdBuilder::new(28.5).places(4);
         assert_eq!(builder.places, Some(4));
 
-        // Test negative places is clamped to 0
         let builder = CsdBuilder::new(28.5).places(-5);
         assert_eq!(builder.places, Some(0));
     }
@@ -1846,7 +1808,6 @@ mod tests {
         assert!(result.is_ok());
     }
 
-    // Tests for CsdError::Display
     #[test]
     fn test_csd_error_display_invalid_character() {
         let err = CsdError::InvalidCharacter('X', 5);
@@ -1901,7 +1862,6 @@ mod tests {
         assert_eq!(format!("{}", err), "Empty string provided");
     }
 
-    // Tests for is_power_of_two
     #[test]
     fn test_is_power_of_two() {
         assert!(is_power_of_two(1));
@@ -1922,7 +1882,6 @@ mod tests {
         assert!(!is_power_of_two(u32::MAX));
     }
 
-    // Tests for count_non_zero_digits
     #[test]
     fn test_count_non_zero_digits() {
         assert_eq!(count_non_zero_digits("0"), 0);
@@ -1936,7 +1895,6 @@ mod tests {
         assert_eq!(count_non_zero_digits("0.+0.-0"), 2);
     }
 
-    // Tests for validate_csd_format
     #[test]
     fn test_validate_csd_format() {
         // Valid CSD strings
@@ -1968,7 +1926,6 @@ mod tests {
         assert!(!validate_csd_format(" "));
     }
 
-    // Tests for to_decimal_fractional
     #[test]
     fn test_to_decimal_fractional() {
         assert_eq!(to_decimal_fractional(""), 0.0);
@@ -1992,7 +1949,6 @@ mod tests {
         let _ = to_decimal_fractional("+0X-0");
     }
 
-    // Tests for to_decimal_i_result
     #[test]
     fn test_to_decimal_i_result() {
         assert_eq!(to_decimal_i_result("+00-00").unwrap(), 28);
@@ -2010,7 +1966,6 @@ mod tests {
         assert!(to_decimal_i_result("abc").is_err());
     }
 
-    // Tests for to_decimal_i64_result
     #[test]
     fn test_to_decimal_i64_result() {
         assert_eq!(to_decimal_i64_result("+00-00").unwrap(), 28i64);
@@ -2025,7 +1980,6 @@ mod tests {
         );
     }
 
-    // Tests for to_decimal_i128_result
     #[test]
     fn test_to_decimal_i128_result() {
         assert_eq!(to_decimal_i128_result("+00-00").unwrap(), 28i128);
@@ -2040,10 +1994,8 @@ mod tests {
         );
     }
 
-    // Tests for to_csdnnz_safe
     #[test]
     fn test_to_csdnnz_safe() {
-        // Valid conversions
         let result = to_csdnnz_safe(28.5, 4).unwrap();
         let nnz_count = result.chars().filter(|c| *c == '+' || *c == '-').count();
         assert!(nnz_count <= 4);
@@ -2064,10 +2016,8 @@ mod tests {
         );
     }
 
-    // Tests for to_csdnnz_i64
     #[test]
     fn test_to_csdnnz_i64_explicit() {
-        // Check that the result has at most the specified number of non-zero digits
         let csd = to_csdnnz_i64(28, 4);
         let nnz_count = csd.chars().filter(|c| *c == '+' || *c == '-').count();
         assert!(nnz_count <= 4);
@@ -2075,12 +2025,10 @@ mod tests {
         assert_eq!(to_csdnnz_i64(0, 4), "0");
         assert_eq!(to_csdnnz_i64(0, 0), "0");
 
-        // Check that with 2 non-zero digits, we get at most 2 non-zeros
         let csd2 = to_csdnnz_i64(158, 2);
         let nnz_count = csd2.chars().filter(|c| *c == '+' || *c == '-').count();
         assert!(nnz_count <= 2);
 
-        // Test negative numbers
         let csd3 = to_csdnnz_i64(-28, 4);
         let nnz_count3 = csd3.chars().filter(|c| *c == '+' || *c == '-').count();
         assert!(nnz_count3 <= 4);
@@ -2091,10 +2039,8 @@ mod tests {
         assert!(nnz_count4 <= 5);
     }
 
-    // Tests for to_csdnnz_i128
     #[test]
     fn test_to_csdnnz_i128_explicit() {
-        // Check that the result has at most the specified number of non-zero digits
         let csd = to_csdnnz_i128(28, 4);
         let nnz_count = csd.chars().filter(|c| *c == '+' || *c == '-').count();
         assert!(nnz_count <= 4);
@@ -2102,12 +2048,10 @@ mod tests {
         assert_eq!(to_csdnnz_i128(0, 4), "0");
         assert_eq!(to_csdnnz_i128(0, 0), "0");
 
-        // Check that with 2 non-zero digits, we get at most 2 non-zeros
         let csd2 = to_csdnnz_i128(158, 2);
         let nnz_count = csd2.chars().filter(|c| *c == '+' || *c == '-').count();
         assert!(nnz_count <= 2);
 
-        // Test negative numbers
         let csd3 = to_csdnnz_i128(-28, 4);
         let nnz_count3 = csd3.chars().filter(|c| *c == '+' || *c == '-').count();
         assert!(nnz_count3 <= 4);
@@ -2118,7 +2062,6 @@ mod tests {
         assert!(nnz_count4 <= 5);
     }
 
-    // Additional tests for to_decimal_result
     #[test]
     fn test_to_decimal_result_multiple_decimal_points() {
         let result = to_decimal_result("+.0.");
