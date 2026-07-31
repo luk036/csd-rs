@@ -179,65 +179,24 @@ impl std::error::Error for CsdError {}
 /// Result type alias for CSD operations
 pub type CsdResult<T> = Result<T, CsdError>;
 
-#[cfg_attr(docsrs, doc = svgbobdoc::transform!(
-/// Find the highest power of two less than or equal to a given number
-///
-/// $$ \text{hp2}(x) = 2^{\lfloor \log_2 x \rfloor} $$
-///
-/// The `highest_power_of_two_in` function calculates the highest power of two that is less than or
-/// equal to a given number. This is done through a bit manipulation technique that fills all bits
-/// below the most significant bit (MSB) with 1s, then shifts and XORs to isolate just the MSB.
-///
-/// ```svgbob
-///     Input x = 14 (binary: 1110)
-///          │
-///          ▼
-///     Fill lower bits: 1111
-///          │
-///          ▼
-///     Shift and XOR: 1111 ^ 0111 = 1000 (8)
-///          │
-///          ▼
-///     Result: 8 (2³)
-/// ```
-///
-/// Reference:
-///
-/// * <https://thecodingbot.com/find-the-greatest-power-of-2-less-than-or-equal-to-a-given-number/>
-///
-/// Arguments:
-///
-/// * `x`: The parameter `x` is an unsigned 32-bit integer. It represents the number for which we want
-///   to find the highest power of two that is less than or equal to it.
-///
-/// Returns:
-///
-/// The function `highest_power_of_two_in` returns the highest power of two that is less than or equal
-/// to the given number.
-///
-/// # Examples
-///
-/// ```
-/// use csd::csd::highest_power_of_two_in;
-///
-/// assert_eq!(highest_power_of_two_in(14), 8);
-/// assert_eq!(highest_power_of_two_in(8), 8);
-/// assert_eq!(highest_power_of_two_in(1), 1);
-/// assert_eq!(highest_power_of_two_in(0), 0);
-/// assert_eq!(highest_power_of_two_in(3), 2);
-/// assert_eq!(highest_power_of_two_in(2), 2);
-/// ```
-))]
-#[must_use]
-#[inline]
-pub const fn highest_power_of_two_in(mut x: u32) -> u32 {
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-    x |= x >> 8;
-    x |= x >> 16;
-    x ^ (x >> 1)
+/// Macro to generate `highest_power_of_two_in` for different unsigned integer widths.
+macro_rules! impl_highest_power_of_two_in {
+    ($type:ty, $fn_name:ident, $($shift:literal),+ $(,)?) => {
+        #[doc = concat!("Find the highest power of two <= a `", stringify!($type), "`.
+
+Uses bit manipulation to fill all bits below MSB with 1s, then isolates MSB via XOR.")]
+        #[must_use]
+        #[inline]
+        pub const fn $fn_name(mut x: $type) -> $type {
+            $(x |= x >> $shift;)+
+            x ^ (x >> 1)
+        }
+    };
 }
+
+impl_highest_power_of_two_in!(u32, highest_power_of_two_in, 1, 2, 4, 8, 16);
+impl_highest_power_of_two_in!(u64, highest_power_of_two_in_u64, 1, 2, 4, 8, 16, 32);
+impl_highest_power_of_two_in!(u128, highest_power_of_two_in_u128, 1, 2, 4, 8, 16, 32, 64);
 
 /// Check if a number is a power of two.
 ///
@@ -411,16 +370,16 @@ pub const fn validate_csd_format(csd: &str) -> bool {
 ))]
 #[must_use]
 pub fn to_csd(decimal_value: f64, places: i32) -> String {
-    if decimal_value == 0.0 {
-        return with_string_buffer(|buf| {
-            buf.push(b'0');
-            buf.push(b'.');
-            for _ in 0..places {
-                buf.push(b'0');
-            }
-            String::from_utf8(std::mem::take(buf)).unwrap()
-        });
-    }
+    // if decimal_value == 0.0 {
+    //     return with_string_buffer(|buf| {
+    //         buf.push(b'0');
+    //         buf.push(b'.');
+    //         for _ in 0..places {
+    //             buf.push(b'0');
+    //         }
+    //         String::from_utf8(std::mem::take(buf)).unwrap()
+    //     });
+    // }
 
     let absnum = decimal_value.abs();
     let initial_capacity = if absnum < 1.0 {
@@ -481,6 +440,121 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
     })
 }
 
+/// Macro to generate `to_csd_i` for different signed integer types.
+macro_rules! impl_to_csd_i {
+    ($fn_name:ident, $sint:ty, $uint:ty, $hp2_fn:ident) => {
+        #[doc = concat!("Convert a `", stringify!($sint), "` integer to Canonical Signed Digit (CSD) representation.
+
+Each digit in the output is '+', '-', or '0' with no consecutive non-zero digits.")]
+        #[must_use]
+        pub fn $fn_name(decimal_value: $sint) -> String {
+            if decimal_value == 0 {
+                return "0".to_string();
+            }
+
+            let utemp = if decimal_value < 0 {
+                (decimal_value as $uint).wrapping_neg()
+            } else {
+                decimal_value as $uint
+            };
+            let temp = utemp * 3 / 2;
+
+            #[allow(clippy::cast_possible_wrap)]
+            let mut p2n = $hp2_fn(temp) as $sint * 2;
+            let mut csd = Vec::with_capacity(::std::mem::size_of::<$sint>() as usize * 8);
+            let mut decimal_value = decimal_value;
+
+            while p2n > 1 {
+                let p2n_half = p2n >> 1;
+                let det = 3 * decimal_value;
+                if det > p2n {
+                    csd.push(b'+');
+                    decimal_value -= p2n_half;
+                } else if det < -p2n {
+                    csd.push(b'-');
+                    decimal_value += p2n_half;
+                } else {
+                    csd.push(b'0');
+                }
+                p2n = p2n_half;
+            }
+
+            String::from_utf8(csd).unwrap()
+        }
+    };
+}
+
+macro_rules! impl_to_decimal_i {
+    ($fn_name:ident, $ty:ty) => {
+        #[doc = concat!("Convert a CSD string to a `", stringify!($ty), "` integer.
+
+Similar to `to_decimal_i` but returns a `", stringify!($ty), "` value.
+Panics if the CSD string contains invalid characters.
+
+# Panics
+
+Panics if the CSD string contains invalid characters.
+
+# Examples
+
+```
+use csd::", stringify!($fn_name), ";
+
+assert_eq!(", stringify!($fn_name), "(\"+00-00\"), 28);
+assert_eq!(", stringify!($fn_name), "(\"0\"), 0);
+```")]
+        #[must_use]
+        pub fn $fn_name(csd: &str) -> $ty {
+            let mut result: $ty = 0;
+            let mut i = 0;
+            let bytes = csd.as_bytes();
+
+            while i < bytes.len() {
+                match bytes[i] {
+                    b'0' => result = result << 1,
+                    b'+' => result = (result << 1) + 1,
+                    b'-' => result = (result << 1) - 1,
+                    _ => panic!("Work with 0, +, and - only"),
+                }
+                i += 1;
+            }
+
+            result
+        }
+    };
+}
+
+macro_rules! impl_to_decimal_i_result {
+    ($fn_name:ident, $ty:ty, $inner_fn:ident) => {
+        #[doc = concat!("Convert the CSD (Canonical Signed Digit) to a decimal `", stringify!($ty), "` with Result type.
+
+Similar to `to_decimal_i` but returns a `", stringify!($ty), "` value via a `Result` type for better error handling.
+
+# Errors
+
+Returns `CsdError::InvalidCharacter` if the CSD string contains invalid characters.
+
+# Examples
+
+```
+use csd::", stringify!($fn_name), ";
+
+assert_eq!(", stringify!($fn_name), "(\"+00-00\").unwrap(), 28);
+assert!(", stringify!($fn_name), "(\"+00X-00\").is_err());
+```")]
+        pub fn $fn_name(csd: &str) -> CsdResult<$ty> {
+            let bytes = csd.as_bytes();
+            for &c in bytes {
+                if !matches!(c, b'+' | b'-' | b'0') {
+                    return Err(CsdError::InvalidCharacter(c as char, 0));
+                }
+            }
+
+            Ok($inner_fn(csd))
+        }
+    };
+}
+
 #[cfg_attr(docsrs, doc = svgbobdoc::transform!(
 /// Convert to CSD (Canonical Signed Digit) String representation
 ///
@@ -534,36 +608,9 @@ pub fn to_csd(decimal_value: f64, places: i32) -> String {
 ///
 /// Panics if the resulting CSD string is not valid UTF-8.
 ))]
-#[must_use]
-pub fn to_csd_i(decimal_value: i32) -> String {
-    if decimal_value == 0 {
-        return "0".to_string();
-    }
-
-    #[allow(clippy::cast_sign_loss)]
-    let temp = (decimal_value.abs() * 3 / 2) as u32;
-    #[allow(clippy::cast_possible_wrap)]
-    let mut p2n = highest_power_of_two_in(temp) as i32 * 2;
-    let mut csd = Vec::with_capacity(32);
-    let mut decimal_value = decimal_value;
-
-    while p2n > 1 {
-        let p2n_half = p2n >> 1;
-        let det = 3 * decimal_value;
-        if det > p2n {
-            csd.push(b'+');
-            decimal_value -= p2n_half;
-        } else if det < -p2n {
-            csd.push(b'-');
-            decimal_value += p2n_half;
-        } else {
-            csd.push(b'0');
-        }
-        p2n = p2n_half;
-    }
-
-    String::from_utf8(csd).unwrap()
-}
+impl_to_csd_i!(to_csd_i, i32, u32, highest_power_of_two_in);
+impl_to_csd_i!(to_csd_i64, i64, u64, highest_power_of_two_in_u64);
+impl_to_csd_i!(to_csd_i128, i128, u128, highest_power_of_two_in_u128);
 
 /// Convert a CSD integer string to decimal i32 (with error handling).
 ///
@@ -667,41 +714,11 @@ pub fn to_decimal_i_safe(csd: &str) -> CsdResult<i32> {
 /// assert_eq!(to_decimal_i("0"), 0);
 /// ```
 ))]
-/// Convert a CSD integer string to decimal i32 (panicking version).
-///
-/// This is a convenience function that panics on invalid input.
-/// For error handling, use `to_decimal_i_safe` instead.
-///
-/// # Panics
-///
-/// Panics if the CSD string contains invalid characters.
-///
-/// # Examples
-///
-/// ```
-/// use csd::csd::to_decimal_i;
-///
-/// assert_eq!(to_decimal_i("+00-00"), 28);
-/// assert_eq!(to_decimal_i("0"), 0);
-/// ```
-#[must_use]
-pub const fn to_decimal_i(csd: &str) -> i32 {
-    let mut result = 0i32;
-    let mut i = 0;
-    let bytes = csd.as_bytes();
+impl_to_decimal_i!(to_decimal_i, i32);
 
-    while i < bytes.len() {
-        match bytes[i] {
-            b'0' => result = result << 1,
-            b'+' => result = (result << 1) + 1,
-            b'-' => result = (result << 1) - 1,
-            _ => panic!("Work with 0, +, and - only"),
-        }
-        i += 1;
-    }
+impl_to_decimal_i!(to_decimal_i64, i64);
 
-    result
-}
+impl_to_decimal_i!(to_decimal_i128, i128);
 
 /// Convert the integral part of a CSD string to decimal (with error handling).
 ///
@@ -952,68 +969,11 @@ pub fn to_decimal_result(csd: &str) -> CsdResult<f64> {
     to_decimal_safe(csd)
 }
 
-/// Convert the CSD (Canonical Signed Digit) to a decimal integer with Result type
-///
-/// Similar to `to_decimal_i` but returns a `Result` type for better error handling.
-///
-/// # Errors
-///
-/// Returns `CsdError::InvalidCharacter` if the CSD string contains invalid characters.
-///
-/// # Examples
-///
-/// ```
-/// use csd::csd::{to_decimal_i_result, CsdError};
-///
-/// assert_eq!(to_decimal_i_result("+00-00").unwrap(), 28);
-/// assert!(to_decimal_i_result("+00X-00").is_err());
-/// ```
-pub fn to_decimal_i_result(csd: &str) -> CsdResult<i32> {
-    let bytes = csd.as_bytes();
-    for &c in bytes {
-        if !matches!(c, b'+' | b'-' | b'0') {
-            return Err(CsdError::InvalidCharacter(c as char, 0));
-        }
-    }
+impl_to_decimal_i_result!(to_decimal_i_result, i32, to_decimal_i);
 
-    Ok(to_decimal_i(csd))
-}
+impl_to_decimal_i_result!(to_decimal_i64_result, i64, to_decimal_i64);
 
-/// Convert the CSD (Canonical Signed Digit) to a decimal i64 with Result type
-///
-/// Similar to `to_decimal_i` but returns an `i64` value via a `Result` type for better error handling.
-///
-/// # Errors
-///
-/// Returns `CsdError::InvalidCharacter` if the CSD string contains invalid characters.
-pub fn to_decimal_i64_result(csd: &str) -> CsdResult<i64> {
-    let bytes = csd.as_bytes();
-    for &c in bytes {
-        if !matches!(c, b'+' | b'-' | b'0') {
-            return Err(CsdError::InvalidCharacter(c as char, 0));
-        }
-    }
-
-    Ok(to_decimal_i(csd) as i64)
-}
-
-/// Convert the CSD (Canonical Signed Digit) to a decimal i128 with Result type
-///
-/// Similar to `to_decimal_i` but returns an `i128` value via a `Result` type for better error handling.
-///
-/// # Errors
-///
-/// Returns `CsdError::InvalidCharacter` if the CSD string contains invalid characters.
-pub fn to_decimal_i128_result(csd: &str) -> CsdResult<i128> {
-    let bytes = csd.as_bytes();
-    for &c in bytes {
-        if !matches!(c, b'+' | b'-' | b'0') {
-            return Err(CsdError::InvalidCharacter(c as char, 0));
-        }
-    }
-
-    Ok(to_decimal_i(csd) as i128)
-}
+impl_to_decimal_i_result!(to_decimal_i128_result, i128, to_decimal_i128);
 
 #[cfg_attr(docsrs, doc = svgbobdoc::transform!(
 /// Convert to CSD representation approximately with fixed number of non-zero
@@ -1189,149 +1149,64 @@ pub fn to_csdnnz_safe(decimal_value: f64, nnz: u32) -> CsdResult<String> {
     Ok(csd)
 }
 
-/// Convert to CSD representation with fixed number of non-zero for i64
-///
-/// $$ \tilde{n}_{\text{CSD}} \approx n \quad \text{with at most } k \text{ non-zero digits} $$
-///
-/// The `to_csdnnz_i64` function converts an i64 into a CSD representation
-/// approximately with a specified number of non-zero digits.
-///
-/// Arguments:
-///
-/// * `decimal_value`: The i64 integer to convert
-/// * `nnz`: Maximum number of non-zero digits allowed
-///
-/// Returns:
-///
-/// A string representation of the given i64 in CSD format with limited non-zero digits.
-///
-/// # Examples
-///
-/// ```
-/// use csd::csd::to_csdnnz_i64;
-///
-/// let csd = to_csdnnz_i64(28, 4);
-/// let nnz_count = csd.chars().filter(|c| *c == '+' || *c == '-').count();
-/// assert!(nnz_count <= 4);
-/// assert_eq!(to_csdnnz_i64(0, 4), "0".to_string());
-/// ```
-#[must_use]
-pub fn to_csdnnz_i64(decimal_value: i64, nnz: u32) -> String {
-    if decimal_value == 0 {
-        return "0".to_string();
-    }
+/// Macro to generate `to_csdnnz_i` for different signed integer types.
+macro_rules! impl_to_csdnnz_i {
+    ($fn_name:ident, $sint:ty, $uint:ty, $hp2_fn:ident) => {
+        #[doc = concat!("Convert `", stringify!($sint), "` to CSD with limited non-zero digits.
 
-    #[allow(clippy::cast_possible_truncation)]
-    let temp = (decimal_value.abs() * 3 / 2) as u64;
-    #[allow(clippy::cast_possible_wrap)]
-    let mut p2n = highest_power_of_two_in(temp as u32) as i64 * 2;
-    let mut csd = String::with_capacity(64);
-    let mut decimal_value = decimal_value;
-    let mut nnz = nnz;
-
-    while p2n > 1 {
-        p2n >>= 1;
-        let p2n_half = p2n;
-        let det = 3 * decimal_value;
-        if det > p2n {
-            csd.push('+');
-            decimal_value -= p2n_half;
-            nnz -= 1;
-        } else if det < -p2n {
-            csd.push('-');
-            decimal_value += p2n_half;
-            nnz -= 1;
-        } else {
-            csd.push('0');
-        }
-        if nnz == 0 {
-            while p2n > 1 {
-                csd.push('0');
-                p2n >>= 1;
+Limits the number of non-zero digits in the output to at most `nnz`.")]
+        #[must_use]
+        pub fn $fn_name(decimal_value: $sint, nnz: u32) -> String {
+            if decimal_value == 0 {
+                return "0".to_string();
             }
-            break;
+
+            let utemp = if decimal_value < 0 {
+                (decimal_value as $uint).wrapping_neg()
+            } else {
+                decimal_value as $uint
+            };
+            let temp = utemp * 3 / 2;
+
+            #[allow(clippy::cast_possible_wrap)]
+            let mut p2n = $hp2_fn(temp) as $sint * 2;
+            let capacity = ::std::mem::size_of::<$sint>() as usize * 8;
+            let mut csd = String::with_capacity(capacity);
+            let mut decimal_value = decimal_value;
+            let mut nnz = nnz;
+
+            while p2n > 1 {
+                p2n >>= 1;
+                let p2n_half = p2n;
+                let det = 3 * decimal_value;
+                if det > p2n {
+                    csd.push('+');
+                    decimal_value -= p2n_half;
+                    nnz -= 1;
+                } else if det < -p2n {
+                    csd.push('-');
+                    decimal_value += p2n_half;
+                    nnz -= 1;
+                } else {
+                    csd.push('0');
+                }
+                if nnz == 0 {
+                    while p2n > 1 {
+                        csd.push('0');
+                        p2n >>= 1;
+                    }
+                    break;
+                }
+            }
+
+            csd
         }
-    }
-
-    csd
-}
-
-/// Convert to CSD representation with fixed number of non-zero for i128
-///
-/// $$ \tilde{n}_{\text{CSD}} \approx n \quad \text{with at most } k \text{ non-zero digits} $$
-///
-/// The `to_csdnnz_i128` function converts an i128 into a CSD representation
-/// approximately with a specified number of non-zero digits.
-///
-/// Arguments:
-///
-/// * `decimal_value`: The i128 integer to convert
-/// * `nnz`: Maximum number of non-zero digits allowed
-///
-/// Returns:
-///
-/// A string representation of the given i128 in CSD format with limited non-zero digits.
-///
-/// # Examples
-///
-/// ```
-/// use csd::csd::to_csdnnz_i128;
-///
-/// let csd = to_csdnnz_i128(28, 4);
-/// let nnz_count = csd.chars().filter(|c| *c == '+' || *c == '-').count();
-/// assert!(nnz_count <= 4);
-/// assert_eq!(to_csdnnz_i128(0, 4), "0".to_string());
-/// ```
-#[must_use]
-pub fn to_csdnnz_i128(decimal_value: i128, nnz: u32) -> String {
-    if decimal_value == 0 {
-        return "0".to_string();
-    }
-
-    #[allow(clippy::cast_possible_truncation)]
-    let temp = (decimal_value.abs() * 3 / 2) as u128;
-    let mut highest_bit = 0u32;
-    let mut temp_mut = temp;
-    while temp_mut > 0 {
-        temp_mut >>= 1;
-        highest_bit += 1;
-    }
-    let mut p2n = if highest_bit > 0 {
-        1i128 << highest_bit
-    } else {
-        0i128
     };
-
-    let mut csd = String::with_capacity(128);
-    let mut decimal_value = decimal_value;
-    let mut nnz = nnz;
-
-    while p2n > 1 {
-        p2n >>= 1;
-        let p2n_half = p2n;
-        let det = 3 * decimal_value;
-        if det > p2n {
-            csd.push('+');
-            decimal_value -= p2n_half;
-            nnz -= 1;
-        } else if det < -p2n {
-            csd.push('-');
-            decimal_value += p2n_half;
-            nnz -= 1;
-        } else {
-            csd.push('0');
-        }
-        if nnz == 0 {
-            while p2n > 1 {
-                csd.push('0');
-                p2n >>= 1;
-            }
-            break;
-        }
-    }
-
-    csd
 }
+
+impl_to_csdnnz_i!(to_csdnnz_i, i32, u32, highest_power_of_two_in);
+impl_to_csdnnz_i!(to_csdnnz_i64, i64, u64, highest_power_of_two_in_u64);
+impl_to_csdnnz_i!(to_csdnnz_i128, i128, u128, highest_power_of_two_in_u128);
 
 #[cfg(test)]
 mod tests {
@@ -1604,121 +1479,6 @@ mod tests {
             CsdError::InvalidCharacter('X', 0)
         );
         assert!(to_decimal_result("1.2.3").is_err());
-    }
-
-    #[must_use]
-    pub const fn to_decimal_i64(csd: &str) -> i64 {
-        let mut result = 0i64;
-        let mut i = 0;
-        let bytes = csd.as_bytes();
-
-        while i < bytes.len() {
-            match bytes[i] {
-                b'0' => result = result << 1,
-                b'+' => result = (result << 1) + 1,
-                b'-' => result = (result << 1) - 1,
-                _ => panic!("Work with 0, +, and - only"),
-            }
-            i += 1;
-        }
-
-        result
-    }
-
-    #[must_use]
-    pub const fn to_decimal_i128(csd: &str) -> i128 {
-        let mut result = 0i128;
-        let mut i = 0;
-        let bytes = csd.as_bytes();
-
-        while i < bytes.len() {
-            match bytes[i] {
-                b'0' => result = result << 1,
-                b'+' => result = (result << 1) + 1,
-                b'-' => result = (result << 1) - 1,
-                _ => panic!("Work with 0, +, and - only"),
-            }
-            i += 1;
-        }
-
-        result
-    }
-
-    #[must_use]
-    pub fn to_csd_i64(decimal_value: i64) -> String {
-        if decimal_value == 0 {
-            return "0".to_string();
-        }
-
-        #[allow(clippy::cast_sign_loss)]
-        let temp = (decimal_value.abs() * 3 / 2) as u64;
-        #[allow(clippy::cast_possible_wrap)]
-        let mut p2n = highest_power_of_two_in(temp as u32) as i64 * 2;
-        let mut csd = Vec::with_capacity(64);
-        let mut decimal_value = decimal_value;
-
-        while p2n > 1 {
-            let p2n_half = p2n >> 1;
-            let det = 3 * decimal_value;
-            if det > p2n {
-                csd.push(b'+');
-                decimal_value -= p2n_half;
-            } else if det < -p2n {
-                csd.push(b'-');
-                decimal_value += p2n_half;
-            } else {
-                csd.push(b'0');
-            }
-            p2n = p2n_half;
-        }
-
-        String::from_utf8(csd).unwrap()
-    }
-
-    #[must_use]
-    pub fn to_csd_i128(decimal_value: i128) -> String {
-        if decimal_value == 0 {
-            return "0".to_string();
-        }
-
-        #[allow(clippy::cast_sign_loss)]
-        let temp = (decimal_value.abs() * 3 / 2) as u128;
-        #[allow(clippy::cast_possible_wrap)]
-        let mut p2n = highest_power_of_two_in(temp as u32) as i128 * 2;
-        let mut csd = Vec::with_capacity(128);
-        let mut decimal_value = decimal_value;
-
-        while p2n > 1 {
-            let p2n_half = p2n >> 1;
-            let det = 3 * decimal_value;
-            if det > p2n {
-                csd.push(b'+');
-                decimal_value -= p2n_half;
-            } else if det < -p2n {
-                csd.push(b'-');
-                decimal_value += p2n_half;
-            } else {
-                csd.push(b'0');
-            }
-            p2n = p2n_half;
-        }
-
-        String::from_utf8(csd).unwrap()
-    }
-
-    #[must_use]
-    pub fn to_csdnnz_i(decimal_value: i32, nnz: u32) -> String {
-        to_csdnnz(decimal_value as f64, nnz)
-    }
-
-    #[must_use]
-    pub fn to_csdnnz_i64(decimal_value: i64, nnz: u32) -> String {
-        to_csdnnz(decimal_value as f64, nnz)
-    }
-
-    #[must_use]
-    pub fn to_csdnnz_i128(decimal_value: i128, nnz: u32) -> String {
-        to_csdnnz(decimal_value as f64, nnz)
     }
 
     #[test]
