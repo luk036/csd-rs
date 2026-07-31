@@ -511,7 +511,7 @@ assert_eq!(", stringify!($fn_name), "(\"0\"), 0);
 
             while i < bytes.len() {
                 match bytes[i] {
-                    b'0' => result = result << 1,
+                    b'0' => result <<= 1,
                     b'+' => result = (result << 1) + 1,
                     b'-' => result = (result << 1) - 1,
                     _ => panic!("Work with 0, +, and - only"),
