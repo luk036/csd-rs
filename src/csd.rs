@@ -1393,7 +1393,7 @@ mod tests {
                 assert!(
                     result <= x
                         && result.is_power_of_two()
-                        && (result == x || result.checked_mul(2).is_none_or(|v| v > x))
+                        && (result == x || result.checked_mul(2).map_or(true, |v| v > x))
                 );
             }
         }
