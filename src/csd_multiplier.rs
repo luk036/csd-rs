@@ -139,6 +139,7 @@ fn build_range_expr(csd_str: &str, start: usize, length: usize, max_power: usize
 /// $$ W_{\text{out}} = W_{\text{in}} + m $$
 ///
 /// where $W_{\text{in}}$ is the input bit width and $m$ is the maximum power of two.
+#[inline]
 fn output_width(input_width: usize, max_power: usize) -> usize {
     input_width + max_power
 }

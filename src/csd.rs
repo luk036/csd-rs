@@ -215,6 +215,7 @@ impl_highest_power_of_two_in!(u128, highest_power_of_two_in_u128, 1, 2, 4, 8, 16
 /// assert!(!is_power_of_two(0));
 /// ```
 #[must_use]
+#[inline]
 pub const fn is_power_of_two(x: u32) -> bool {
     x != 0 && (x & (x - 1)) == 0
 }
@@ -898,6 +899,7 @@ pub fn to_decimal_fractional_safe(csd: &str) -> CsdResult<f64> {
 /// ```
 ))]
 #[must_use]
+#[inline]
 pub fn to_decimal(csd: &str) -> f64 {
     to_decimal_safe(csd).unwrap()
 }

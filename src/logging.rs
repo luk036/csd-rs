@@ -123,6 +123,7 @@ pub fn try_init_logger_with_filter(filter: &str) -> Result<(), log::SetLoggerErr
 /// }
 /// ```
 #[cfg(feature = "std")]
+#[inline]
 pub fn is_logger_initialized() -> bool {
     log::max_level() != LevelFilter::Off
 }
