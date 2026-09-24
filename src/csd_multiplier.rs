@@ -84,23 +84,38 @@ enum TermOp {
     Sub,
 }
 
+/// Validate a CSD string against its declared width.
+///
+/// Single source of truth for CSD format validation: every character must be
+/// `'+'`, `'-'`, or `'0'`, and the string length must equal `max_power + 1`.
+fn validate_csd(csd: &str, max_power: usize) -> Result<(), CsdMultiplierError> {
+    if !csd
+        .as_bytes()
+        .iter()
+        .all(|&c| matches!(c, b'+' | b'-' | b'0'))
+    {
+        return Err(CsdMultiplierError::InvalidCharacter);
+    }
+    if csd.len() != max_power + 1 {
+        return Err(CsdMultiplierError::LengthMismatch);
+    }
+    Ok(())
+}
+
 /// Parse a CSD string into (power, operation) pairs.
-fn parse_terms(
-    csd_str: &str,
-    max_power: usize,
-) -> Result<Vec<(usize, TermOp)>, CsdMultiplierError> {
+///
+/// Assumes `csd_str` has already been validated by [`validate_csd`].
+fn parse_terms(csd_str: &str, max_power: usize) -> Vec<(usize, TermOp)> {
     let mut terms = Vec::new();
-    let bytes = csd_str.as_bytes();
-    for (i, &c) in bytes.iter().enumerate() {
+    for (i, &c) in csd_str.as_bytes().iter().enumerate() {
         let power = max_power - i;
         match c {
             b'+' => terms.push((power, TermOp::Add)),
             b'-' => terms.push((power, TermOp::Sub)),
-            b'0' => {}
-            _ => return Err(CsdMultiplierError::InvalidCharacter),
+            _ => {}
         }
     }
-    Ok(terms)
+    terms
 }
 
 /// Build a flat Verilog expression for a range [start, start+length) of the CSD string.
@@ -165,13 +180,7 @@ impl CsdMultiplier {
     /// Returns `CsdMultiplierError::LengthMismatch` if the CSD string length
     /// doesn't equal `m + 1`.
     pub fn new(csd: &str, n: usize, m: usize) -> Result<Self, CsdMultiplierError> {
-        let bytes = csd.as_bytes();
-        if !bytes.iter().all(|&c| matches!(c, b'+' | b'-' | b'0')) {
-            return Err(CsdMultiplierError::InvalidCharacter);
-        }
-        if csd.len() != m + 1 {
-            return Err(CsdMultiplierError::LengthMismatch);
-        }
+        validate_csd(csd, m)?;
         Ok(Self {
             csd: csd.to_string(),
             n,
@@ -265,7 +274,7 @@ impl CsdMultiplier {
 
     /// Generate assign statement with LCSRe optimization.
     fn generate_result_lcsre(&self, output: &mut String) {
-        let terms = parse_terms(&self.csd, self.m).unwrap_or_default();
+        let terms = parse_terms(&self.csd, self.m);
         if terms.is_empty() {
             writeln!(output, "\n    // CSD implementation").unwrap();
             writeln!(output, "    assign result = 0;").unwrap();
@@ -506,18 +515,9 @@ pub fn generate_csd_multiplier(
     input_width: usize,
     max_power: usize,
 ) -> Result<String, CsdMultiplierError> {
-    // --- validation ---
-    let len = csd_str.len();
-    if len != max_power + 1 {
-        return Err(CsdMultiplierError::LengthMismatch);
-    }
-    for &c in csd_str.as_bytes() {
-        if c != b'+' && c != b'-' && c != b'0' {
-            return Err(CsdMultiplierError::InvalidCharacter);
-        }
-    }
+    validate_csd(csd_str, max_power)?;
 
-    let terms = parse_terms(csd_str, max_power)?;
+    let terms = parse_terms(csd_str, max_power);
     let ow = output_width(input_width, max_power);
 
     let mut verilog = String::new();
@@ -725,15 +725,7 @@ pub fn generate_csd_multipliers(
         if spec.input_width != input_width || spec.max_power != max_power {
             return Err(CsdMultiplierError::WidthMismatch);
         }
-        let len = spec.csd.len();
-        if len != max_power + 1 {
-            return Err(CsdMultiplierError::LengthMismatch);
-        }
-        for c in spec.csd.chars() {
-            if c != '+' && c != '-' && c != '0' {
-                return Err(CsdMultiplierError::InvalidCharacter);
-            }
-        }
+        validate_csd(&spec.csd, max_power)?;
     }
 
     let ow = output_width(input_width, max_power);
@@ -1176,5 +1168,23 @@ endmodule
         }];
         let r = generate_csd_multipliers(&coeffs, "test");
         assert_eq!(r, Err(CsdMultiplierError::InvalidCharacter));
+    }
+
+    #[test]
+    fn test_fn_invalid_chars_take_precedence_over_length() {
+        let r = generate_csd_multiplier("12+", 8, 5);
+        assert_eq!(r, Err(CsdMultiplierError::InvalidCharacter));
+    }
+
+    #[test]
+    fn test_multi_length_mismatch() {
+        let coeffs = vec![MultiplierSpec {
+            name: "y0".to_string(),
+            csd: "+0-".to_string(),
+            input_width: 8,
+            max_power: 5,
+        }];
+        let r = generate_csd_multipliers(&coeffs, "test");
+        assert_eq!(r, Err(CsdMultiplierError::LengthMismatch));
     }
 }
